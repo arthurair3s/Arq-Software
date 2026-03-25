@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ifood_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ifood_clone
+    ports:
+      - '5432:5432' # expoe a porta local
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # persiste os dados do banco
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: ifood_api
+    ports:
+      - '4000:4000' # porta da api apollo
+      - '5555:5555' # porta do prisma studio
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/ifood_clone?schema=public"
+    depends_on:
+      - db
+    volumes:
+      - .:/app # espelha os arquivos (hot reload)
+      - /app/node_modules # isola dependencias do container
+    command: sh -c "npm install @prisma/adapter-pg && npx prisma generate && npm run dev"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

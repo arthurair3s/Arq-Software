@@ -1,18 +1,34 @@
 import { ApolloServer } from '@apollo/server'
 import { startStandaloneServer } from '@apollo/server/standalone'
-import { readFileSync, readdirSync } from 'fs'
+import fs, { readFileSync, readdirSync } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { resolvers } from './resolvers/index.js'
+import { resolvers } from './resolvers.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const graphqlFiles = readdirSync(path.join(__dirname, 'graphql')).filter(f => f.endsWith('.graphql'))
-const typeDefs = graphqlFiles.map(file => 
-  readFileSync(path.join(__dirname, 'graphql', file), { encoding: 'utf-8' })
-).join('\n')
+const getGraphQLFiles = (dir) => {
+  const files = readdirSync(dir, { withFileTypes: true })
+  let typeDefs = ''
+  
+  if (fs.existsSync(path.join(dir, 'schema.graphql'))) {
+    typeDefs += readFileSync(path.join(dir, 'schema.graphql'), 'utf-8') + '\n'
+  }
+
+  for (const file of files) {
+    if (file.isDirectory()) {
+      const gqlFile = path.join(dir, file.name, `${file.name}.graphql`)
+      if (fs.existsSync(gqlFile)) {
+        typeDefs += readFileSync(gqlFile, 'utf-8') + '\n'
+      }
+    }
+  }
+  return typeDefs
+}
+
+const typeDefs = getGraphQLFiles(__dirname)
 
 const server = new ApolloServer({
   typeDefs,

@@ -13,8 +13,13 @@
   "type": "module",
   "dependencies": {
     "@apollo/server": "^5.4.0",
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
     "express": "^5.2.1",
     "graphql": "^16.13.1",
     "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.5.0"
   }
 }
