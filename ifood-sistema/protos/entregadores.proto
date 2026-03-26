@@ -2,40 +2,121 @@ syntax = "proto3";
 
 option csharp_namespace = "ms_entregadores_cs.Grpc";
 
+/**
+ * Serviço responsável pelo ciclo de vida e geolocalização dos entregadores.
+ * Gerencia a persistência no PostgreSQL e dados voláteis de localização no Redis.
+ */
 service EntregadorService {
-  // Chamado pelo GraphQL (Node) para persistir no Postgres via C#
-  rpc CadastrarEntregador (NovoEntregadorRequest) returns (EntregadorResponse);
+  
+  /**
+   * Cria um novo registro de entregador.
+   * Utilizado pela API node para persistência inicial no banco de dados.
+   */
+  rpc CadastrarEntregador (NovoEntregadorRequest) returns (EntregadorResponse); 
 
-  // Streaming para o app do entregador enviar coordenadas (direto para o Redis)
+  /**
+   * Recebe um fluxo contínuo de coordenadas do entregador.
+   * Estes dados devem ser processados em tempo real e armazenados no Redis (GeoSpatial).
+   */
   rpc AtualizarLocalizacaoStream (stream LocalizacaoRequest) returns (LocalizacaoSummary);
 
-  // O GraphQL chama este para buscar quem está perto (Consulta o Redis)
+  /**
+   * Consulta o Redis para encontrar entregadores ativos dentro de um raio específico.
+   * Retorna uma lista de entregadores com base na última latitude/longitude conhecida.
+   */
   rpc BuscarProximos (BuscaProximaRequest) returns (ListaEntregadoresResponse);
+
+  /**
+   * Recupera os detalhes completos de um entregador através do seu identificador único.
+   */
+  rpc ObterEntregadorPorId (IdRequest) returns (EntregadorResponse);
+
+  /**
+   * Retorna a listagem geral de todos os entregadores cadastrados na base de dados.
+   */
+  rpc ListarTodosEntregadores (Vazio) returns (ListaEntregadoresResponse);
+
+  /**
+   * Atualiza informações cadastrais (nome, telefone, veículo) de um entregador existente.
+   */
+  rpc EditarEntregador (EditarEntregadorRequest) returns (EntregadorResponse);
+
+  /**
+   * Remove permanentemente um entregador do sistema com base no ID fornecido.
+   */
+  rpc DeletarEntregador (IdRequest) returns (SucessoResponse);
 }
 
+// --- Mensagens de Requisição e Resposta ---
+
+/**
+ * Objeto de requisição genérico para operações que exigem apenas o identificador.
+ */
+message IdRequest {
+  int32 id = 1;
+}
+
+/**
+ * Representa uma mensagem sem campos, utilizada para chamadas que não requerem parâmetros de entrada.
+ */
+message Vazio {}
+
+/**
+ * Resposta simplificada para confirmar o êxito de operações de mutação (como Deletar).
+ */
+message SucessoResponse {
+  bool sucesso = 1;
+}
+
+/**
+ * Parâmetros para atualização de dados cadastrais.
+ * Todos os campos devem ser preenchidos para evitar perda de dados (Overwrite).
+ */
+message EditarEntregadorRequest {
+  int32 id = 1;
+  string nome = 2;
+  string telefone = 3;
+  string veiculo = 4;
+}
+
+/**
+ * Dados necessários para a criação de um novo registro de entregador.
+ */
 message NovoEntregadorRequest {
   string nome = 1;
   string telefone = 2;
   string veiculo = 3;
 }
 
+/**
+ * Representa um ponto geográfico enviado pelo dispositivo do entregador.
+ */
 message LocalizacaoRequest {
-  int32 entregador_id = 1; // Baseado no seu Int do Prisma
+  int32 entregador_id = 1;
   double latitude = 2;
   double longitude = 3;
 }
 
+/**
+ * Resumo do processamento do Stream de localização.
+ */
 message LocalizacaoSummary {
   bool sucesso = 1;
   string mensagem = 2;
 }
 
+/**
+ * Parâmetros para busca geoespacial.
+ */
 message BuscaProximaRequest {
   double latitude = 1;
   double longitude = 2;
   double raio_km = 3;
 }
 
+/**
+ * Objeto de transferência de dados (DTO) completo do entregador.
+ */
 message EntregadorResponse {
   int32 id = 1;
   string nome = 2;
@@ -45,6 +126,9 @@ message EntregadorResponse {
   double longitude = 6;
 }
 
+/**
+ * Encapsula uma coleção de entregadores para respostas em lista.
+ */
 message ListaEntregadoresResponse {
   repeated EntregadorResponse entregadores = 1;
 }

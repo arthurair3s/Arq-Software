@@ -21,24 +21,41 @@ export const listarProximos = (latitude, longitude, raioKm) => {
   })
 }
 
-// --- TODO ---
-
 export const buscarPorId = id => {
-  console.log(`[TODO] Buscar entregador ${id} via gRPC`)
-  return null
+  return new Promise((resolve, reject) => {
+    client.ObterEntregadorPorId({ id: parseInt(id) }, (error, response) => {
+      if (error) return reject(error)
+      resolve(response)
+    })
+  })
 }
 
 export const editarPorId = (id, dados) => {
-  console.log(`[TODO] Editar entregador ${id} via gRPC`)
-  return null
+  return new Promise((resolve, reject) => {
+    client.EditarEntregador(
+      { id: parseInt(id), ...dados },
+      (error, response) => {
+        if (error) return reject(error)
+        resolve(response)
+      }
+    )
+  })
 }
 
 export const deletar = id => {
-  console.log(`[TODO] Deletar entregador ${id} via gRPC`)
-  return false
+  return new Promise((resolve, reject) => {
+    client.DeletarEntregador({ id: parseInt(id) }, (error, response) => {
+      if (error) return reject(error)
+      resolve(response.sucesso)
+    })
+  })
 }
 
 export const listar = () => {
-  console.log(`[TODO] Listar todos via gRPC`)
-  return []
+  return new Promise((resolve, reject) => {
+    client.ListarTodosEntregadores({}, (error, response) => {
+      if (error) return reject(error)
+      resolve(response.entregadores || [])
+    })
+  })
 }

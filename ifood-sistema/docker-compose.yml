@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: ifood_postgres
+    container_name: db_postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -14,7 +14,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: ifood_redis
+    container_name: db_redis
     ports:
       - '6379:6379'
     restart: unless-stopped
@@ -42,6 +42,7 @@ services:
     container_name: api_delivery
     ports:
       - '4000:4000'
+      - '5555:5555'
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/ifood_clone?schema=public
       - ENTREGADORES_SERVICE_URL=ms_entregadores:5000

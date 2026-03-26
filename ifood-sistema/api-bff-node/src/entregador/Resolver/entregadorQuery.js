@@ -1,8 +1,20 @@
 import * as entregadorService from '../entregadorService.js'
 
 export const Query = {
-  entregadores: async () => entregadorService.listar(),
+  entregadores: async () => {
+    const response = await entregadorService.listar()
+    return response.entregadores || []
+  },
+
   entregador: async (_, { id }) => entregadorService.buscarPorId(id),
-  buscarEntregadoresProximos: async (_, { latitude, longitude, raioKm }) =>
-    entregadorService.listarProximos(latitude, longitude, raioKm)
+
+  buscarEntregadoresProximos: async (_, { latitude, longitude, raioKm }) => {
+    const result = await entregadorService.listarProximos(
+      latitude,
+      longitude,
+      raioKm
+    )
+
+    return result || []
+  }
 }
