@@ -9,10 +9,10 @@ import { resolvers } from './resolvers.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const getGraphQLFiles = (dir) => {
+const getGraphQLFiles = dir => {
   const files = readdirSync(dir, { withFileTypes: true })
   let typeDefs = ''
-  
+
   if (fs.existsSync(path.join(dir, 'schema.graphql'))) {
     typeDefs += readFileSync(path.join(dir, 'schema.graphql'), 'utf-8') + '\n'
   }
@@ -36,7 +36,14 @@ const server = new ApolloServer({
 })
 
 const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 }
+  listen: { port: 4000 },
+  cors: {
+    origin: [
+      'https://sandbox.embed.apollographql.com',
+      'http://localhost:4000'
+    ],
+    credentials: true
+  }
 })
 
 console.log(`Servidor rodando em ${url}`)

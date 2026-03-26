@@ -89,6 +89,8 @@ model restaurantes {
   nome       String       @db.VarChar(150)
   descricao  String?
   endereco   String?
+  latitude   Float?
+  longitude  Float?
   avaliacoes avaliacoes[]
   categorias categorias[]
 }

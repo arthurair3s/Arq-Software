@@ -11,9 +11,9 @@ export const buscarRestaurantePorId = async id => {
 }
 
 export const criarRestaurante = async restaurante => {
-  const { nome, descricao, endereco } = restaurante
+  const { nome, descricao, endereco, latitude, longitude } = restaurante
   return await prisma.restaurantes.create({
-    data: { nome, descricao, endereco }
+    data: { nome, descricao, endereco, latitude, longitude }
   })
 }
 

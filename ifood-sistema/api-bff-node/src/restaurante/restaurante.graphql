@@ -3,6 +3,8 @@ type Restaurante {
   nome: String!
   descricao: String
   endereco: String
+  latitude: Float
+  longitude: Float
 }
 
 extend type Query {
