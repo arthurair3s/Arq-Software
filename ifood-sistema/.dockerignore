@@ -1,0 +1,9 @@
+osrm-data/
+osrm-data/**
+
+**/bin/
+**/obj/
+
+**/node_modules/
+
+.git/

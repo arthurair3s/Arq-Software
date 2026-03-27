@@ -1,0 +1,27 @@
+api-bff-node/
+
+bin/
+obj/
+out/
+**/*.user
+appsettings.Development.json
+
+# --- IDE e Cache ---
+.vs/
+.vscode/
+ms-projects-cs.slnx
+*.suo
+*.sln.docstates
+
+# --- Global e Docker ---
+.git/
+.github/
+.dockerignore
+docker-compose.yml
+Dockerfile
+*.md
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+desktop.ini

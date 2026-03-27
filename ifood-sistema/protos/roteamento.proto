@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option csharp_namespace = "ms_roteamento_cs.Grpc";
+
+// Serviço responsável por cálculos espaciais e trajetórias.
+service RoteamentoService {
+  
+  // Calcula a distância simples e o tempo estimado entre dois pontos.
+  // Útil para cálculos rápidos de frete e verificações de proximidade.
+  rpc CalcularResumoRota (RotaRequest) returns (ResumoRotaResponse);
+
+  // Retorna a geometria detalhada da rota (pontos para desenhar no mapa).
+  // Útil para o App do Entregador e para o Cliente acompanhar o trajeto.
+  rpc ObterGeometriaRota (RotaRequest) returns (GeometriaRotaResponse);
+
+  // Calcula uma rota complexa com múltiplas paradas (ex: Entregador -> Restaurante -> Cliente).
+  rpc CalcularRotaMultiplosPontos (MultiplosPontosRequest) returns (GeometriaRotaResponse);
+}
+
+// Representação de uma coordenada geográfica.
+message Localizacao {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+// Requisição para rota simples entre dois pontos.
+message RotaRequest {
+  Localizacao origem = 1;
+  Localizacao destino = 2;
+}
+
+// Requisição para rota com 3 ou mais pontos.
+message MultiplosPontosRequest {
+  // A ordem na lista define a ordem das paradas.
+  repeated Localizacao pontos = 1;
+}
+
+// Resposta simplificada (apenas números).
+message ResumoRotaResponse {
+  double distancia_km = 1;
+  int32 duracao_estimada_segundos = 2;
+  string mensagem_erro = 3; // Para caso o ponto seja inacessível (ex: no meio do oceano)
+}
+
+// Resposta detalhada com coordenadas para plotagem em mapas.
+message GeometriaRotaResponse {
+  repeated Localizacao caminho = 1; // Lista de pontos que formam a linha da rua
+  double distancia_total_km = 2;
+  int32 duracao_total_segundos = 3;
+}
