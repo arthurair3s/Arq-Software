@@ -1,6 +1,4 @@
-﻿using Features.GerenciamentoEntregadores;
-
-namespace Features.GerenciamentoEntregadores.Contracts
+﻿namespace Features.GerenciamentoEntregadores.Contracts
 {
     public interface IEntregadorRepository
     {

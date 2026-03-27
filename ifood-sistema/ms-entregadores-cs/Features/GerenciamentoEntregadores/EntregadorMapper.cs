@@ -1,8 +1,6 @@
-﻿using Features.GerenciamentoEntregadores;
-using ms_entregadores_cs.Features.GerenciamentoEntregadores;
-using ms_entregadores_cs.Grpc;
+﻿using ms_entregadores_cs.Grpc;
 
-namespace ms_entregadores_cs.Features.GerenciamentoEntregadores;
+namespace Features.GerenciamentoEntregadores;
 
 public static class EntregadorMapper
 {

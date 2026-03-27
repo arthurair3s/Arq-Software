@@ -1,5 +1,4 @@
 ﻿using Grpc.Core;
-using ms_entregadores_cs.Features.GerenciamentoEntregadores;
 using ms_entregadores_cs.Grpc;
 
 namespace Features.GerenciamentoEntregadores
