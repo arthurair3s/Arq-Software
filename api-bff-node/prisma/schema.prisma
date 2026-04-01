@@ -70,15 +70,19 @@ model pagamentos {
 }
 
 model pedidos {
-  id           Int            @id @default(autoincrement())
-  usuario_id   Int?
-  status       String?        @db.VarChar(50)
-  valor_total  Decimal?       @db.Decimal(10, 2)
-  data_criacao DateTime?      @default(now()) @db.Timestamp(6)
-  entregas     entregas[]
-  itens_pedido itens_pedido[]
-  pagamentos   pagamentos[]
-  usuarios     usuarios?      @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                Int            @id @default(autoincrement())
+  usuario_id        Int?
+  restaurante_id    Int?
+  status            String?        @db.VarChar(50)
+  valor_total       Decimal?       @db.Decimal(10, 2)
+  destino_latitude  Float?
+  destino_longitude Float?
+  data_criacao      DateTime?      @default(now()) @db.Timestamp(6)
+  entregas          entregas[]
+  itens_pedido      itens_pedido[]
+  pagamentos        pagamentos[]
+  usuarios          usuarios?      @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  restaurantes      restaurantes?  @relation(fields: [restaurante_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model produtos {
@@ -100,6 +104,7 @@ model restaurantes {
   longitude  Float?
   avaliacoes avaliacoes[]
   categorias categorias[]
+  pedidos    pedidos[]
 }
 
 model usuarios {

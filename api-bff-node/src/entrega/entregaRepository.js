@@ -40,3 +40,16 @@ export const deletarEntrega = async id => {
     where: { id: Number(id) }
   })
 }
+
+export const possuiEntregaAtivaNoRestaurante = async (entregadorId, restauranteId) => {
+  const corrida = await prisma.entregas.findFirst({
+    where: {
+      entregador_id: Number(entregadorId),
+      pedidos: {
+        restaurante_id: Number(restauranteId)
+      }
+    }
+  })
+  return !!corrida;
+}
+

@@ -20,7 +20,7 @@ namespace Features.GerenciamentoEntregadores
                 .Select(e => new { e.Id, e.Status })
                 .FirstOrDefaultAsync(e => e.Id == entregadorId);
 
-            if (entregador != null && entregador.Status == "DISPONIVEL")
+            if (entregador != null && (entregador.Status == "DISPONIVEL" || entregador.Status == "EM_ENTREGA"))
             {
                 await _redis.GeoAddAsync(RedisKey, longitude, latitude, entregadorId.ToString());
             }
@@ -70,7 +70,7 @@ namespace Features.GerenciamentoEntregadores
       _logger.LogInformation("Buscando no Postgres os IDs: {Ids}", string.Join(", ", ids));
 
       var lista = await _dbContext.Entregadores
-          .Where(e => ids.Contains(e.Id) && e.Status == "DISPONIVEL")
+          .Where(e => ids.Contains(e.Id) && (e.Status == "DISPONIVEL" || e.Status == "EM_ENTREGA"))
           .AsNoTracking()
           .ToListAsync();
 

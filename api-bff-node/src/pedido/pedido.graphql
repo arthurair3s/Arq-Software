@@ -1,8 +1,11 @@
 type Pedido {
   id: ID!
   usuario: Usuario
+  restaurante_id: ID
   status: String
   valor_total: Float
+  destino_latitude: Float
+  destino_longitude: Float
   data_criacao: String
 }
 
@@ -18,16 +21,22 @@ extend type Query {
 extend type Mutation {
   criarPedido(
     usuario_id: ID!
+    restaurante_id: ID!
     status: String
     valor_total: Float
+    destino_latitude: Float!
+    destino_longitude: Float!
     data_criacao: String
   ): Pedido
 
   editarPedido(
     id: ID!
     usuario_id: ID
+    restaurante_id: ID
     status: String
     valor_total: Float
+    destino_latitude: Float
+    destino_longitude: Float
     data_criacao: String
   ): Pedido
 

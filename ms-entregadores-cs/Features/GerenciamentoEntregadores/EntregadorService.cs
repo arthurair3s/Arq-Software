@@ -37,10 +37,10 @@ namespace Features.GerenciamentoEntregadores
         
         var entregadoresNoBanco = await _repository.ObterDadosEntregadoresPorIds(idsInt);
         
-        var disponiveis = entregadoresNoBanco.Where(e => e.Status == "DISPONIVEL").ToList();
+        var candidatos = entregadoresNoBanco.Where(e => e.Status == "DISPONIVEL" || e.Status == "EM_ENTREGA").ToList();
 
         var response = new ListaEntregadoresResponse();
-        response.Entregadores.AddRange(disponiveis.Select(e => 
+        response.Entregadores.AddRange(candidatos.Select(e => 
         {
             var pos = idsRedis[e.Id];
             return e.ToResponse(pos.Latitude, pos.Longitude);

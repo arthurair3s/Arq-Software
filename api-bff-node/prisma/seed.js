@@ -20,32 +20,32 @@ const prisma = new PrismaClient({ adapter })
 // =============================================================================
 const RESTAURANTES = [
   {
-    nome: 'Burger House SP',
-    descricao: 'Os melhores hambúrgueres artesanais da cidade',
-    endereco: 'R. Vinícius de Moraes, 149 - Ipanema, Rio de Janeiro',
-    latitude: -22.9847,
-    longitude: -43.2042
+    nome: "Pizzaria Cachambi",
+    descricao: 'Pizzas no forno a lenha, receita italiana original perto do Norte Shopping',
+    endereco: 'Rua Cachambi, 340 - Cachambi, Rio de Janeiro',
+    latitude: -22.8861,
+    longitude: -43.2778
   },
   {
-    nome: 'Sushi Naka',
-    descricao: 'Culinária japonesa autêntica e sashimis frescos',
-    endereco: 'R. Dias Ferreira, 256 - Leblon, Rio de Janeiro',
-    latitude: -22.9842,
-    longitude: -43.2242
+    nome: 'Sushi Maria da Graça',
+    descricao: 'As melhores peças de salmão da ZN',
+    endereco: 'Rua Conde de Azambuja, 200 - Maria da Graça, Rio de Janeiro',
+    latitude: -22.8767,
+    longitude: -43.2721
   },
   {
-    nome: 'Pizza do Bairro',
-    descricao: 'Pizzas no forno a lenha, receita italiana original',
-    endereco: 'Av. Rio Branco, 156 - Centro, Rio de Janeiro',
-    latitude: -22.9035,
-    longitude: -43.1729
+    nome: 'Lanchonete Bonsucesso',
+    descricao: 'Lanches de rua e batata frita da melhor qualidade',
+    endereco: 'Praça das Nações - Bonsucesso, Rio de Janeiro',
+    latitude: -22.8631,
+    longitude: -43.2554
   },
   {
     nome: "Braga's Burguer",
-    descricao: 'Os melhores hambúrgueres artesanais da cidade',
+    descricao: 'Os melhores hambúrgueres artesanais de Higienópolis',
     endereco: 'R. Ten. Abel Cunha, 10B - Higienópolis, Rio de Janeiro',
-    latitude: -22.877022682003563,
-    longitude: -43.25668137669005
+    latitude: -22.877022,
+    longitude: -43.256681
   }
 ]
 
@@ -99,105 +99,39 @@ const ENTREGADORES = [
 // CATEGORIAS E PRODUTOS — Altere livremente
 // =============================================================================
 const CATEGORIAS_POR_RESTAURANTE = {
-  'Burger House SP': [
-    {
-      nome: 'Hambúrgueres',
-      produtos: [
-        {
-          nome: 'Classic Burger',
-          descricao: 'Pão brioche, carne 180g, queijo, alface, tomate',
-          preco: 32.9
-        },
-        {
-          nome: 'Double Smash',
-          descricao: 'Dois smash burgers, queijo americano e molho especial',
-          preco: 42.9
-        },
-        {
-          nome: 'Chicken Crispy',
-          descricao: 'Frango empanado crocante, cheddar e maionese de alho',
-          preco: 35.9
-        }
-      ]
-    },
-    {
-      nome: 'Acompanhamentos',
-      produtos: [
-        {
-          nome: 'Batata Frita Clássica',
-          descricao: 'Porção 200g crocante',
-          preco: 14.9
-        },
-        {
-          nome: 'Onion Rings',
-          descricao: 'Anéis de cebola empanados',
-          preco: 16.9
-        }
-      ]
-    }
-  ],
-  'Sushi Naka': [
-    {
-      nome: 'Combinados',
-      produtos: [
-        {
-          nome: 'Combinado Iniciante',
-          descricao: '12 peças: 6 niguiri + 6 hossomaki',
-          preco: 49.9
-        },
-        {
-          nome: 'Combinado Premium',
-          descricao: '20 peças: salmão, atum e camarão',
-          preco: 79.9
-        }
-      ]
-    },
-    {
-      nome: 'Temaki',
-      produtos: [
-        {
-          nome: 'Temaki Salmão',
-          descricao: 'Salmão fresco, cream cheese e cebolinha',
-          preco: 22.9
-        },
-        {
-          nome: 'Temaki Camarão',
-          descricao: 'Camarão grelhado com molho especial',
-          preco: 24.9
-        }
-      ]
-    }
-  ],
-  'Pizza do Bairro': [
+  'Pizzaria Cachambi': [
     {
       nome: 'Pizzas Salgadas',
       produtos: [
-        {
-          nome: 'Margherita',
-          descricao: 'Molho de tomate, mussarela e manjericão fresco',
-          preco: 45.0
-        },
-        {
-          nome: 'Pepperoni',
-          descricao: 'Pepperoni italiano importado e mussarela',
-          preco: 52.0
-        },
-        {
-          nome: 'Quatro Queijos',
-          descricao: 'Mussarela, gorgonzola, provolone e parmesão',
-          preco: 55.0
-        }
+        { nome: 'Margherita', descricao: 'Mussarela e manjericão fresco', preco: 45.0 },
+        { nome: 'Pepperoni', descricao: 'Pepperoni italiano importado', preco: 52.0 },
       ]
-    },
+    }
+  ],
+  'Sushi Maria da Graça': [
     {
-      nome: 'Bebidas',
+      nome: 'Combinados',
       produtos: [
-        { nome: 'Coca-Cola 600ml', descricao: 'Gelada', preco: 8.0 },
-        {
-          nome: 'Suco Natural',
-          descricao: 'Laranja ou Limão 500ml',
-          preco: 10.0
-        }
+        { nome: 'Combinado ZN', descricao: '12 peças: 6 niguiri + 6 hossomaki', preco: 49.9 },
+        { nome: 'Temaki Salmão', descricao: 'Salmão fresco e cream cheese', preco: 22.9 }
+      ]
+    }
+  ],
+  'Lanchonete Bonsucesso': [
+    {
+      nome: 'Lanches',
+      produtos: [
+        { nome: 'X-Tudo', descricao: 'Pão, carne, ovo, bacon, calabresa', preco: 25.0 },
+        { nome: 'Batata com Cheddar', descricao: 'Porção grande', preco: 18.0 }
+      ]
+    }
+  ],
+  "Braga's Burguer": [
+    {
+      nome: 'Hambúrgueres',
+      produtos: [
+        { nome: 'Classic Burger', descricao: 'Pão brioche, carne 180g', preco: 32.9 },
+        { nome: 'Double Smash', descricao: 'Dois smash burgers', preco: 42.9 }
       ]
     }
   ]
