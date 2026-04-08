@@ -10,13 +10,13 @@ export const buscarPorId = async id => {
 }
 
 export const criar = async dados => {
-  // O Pedido nasce com este status padrão na nossa integração
+  // status padrao de criacao do pedido
   const novoPedido = await pedidoRepository.criarPedido({
     ...dados,
     status: 'EM_PREPARO_ENTREGA' 
   });
 
-  // Dispara a lógica de atribuição inteligente (pode ser Async em PRD, faremos Sync para logs)
+  // dispara a logica de atribuicao inteligente
   try {
     await entregaService.atribuirMelhorEntregador(novoPedido.id);
   } catch (error) {

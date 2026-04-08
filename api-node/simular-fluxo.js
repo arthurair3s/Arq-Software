@@ -21,7 +21,7 @@ async function rodarFluxo() {
 
         console.log(`\n🍔 Restaurante Alvo: ${restauranteAlvo.nome} em [${restauranteAlvo.latitude}, ${restauranteAlvo.longitude}]`);
         
-        // TELEPORTE: Atualiza o Redis via gRPC Stream antes de criar o pedido
+        // teleporte: atualiza o redis via grpc stream antes de criar o pedido
         console.log(`\n🚀 Teleportando Entregador ${entregadorProximo.nome} para perto do restaurante...`);
         
         await new Promise((resolve, reject) => {
@@ -31,7 +31,7 @@ async function rodarFluxo() {
                 resolve();
             });
             
-            // Enviamos uma posição 500 metros ao norte do restaurante
+            // 1. envia uma posicao 500 metros ao norte do restaurante
             stream.write({
                 entregadorId: entregadorProximo.id,
                 latitude: restauranteAlvo.latitude + 0.004, 
@@ -66,7 +66,7 @@ async function rodarFluxo() {
             console.log(`Status da Entrega: ${entrega.status}`);
             console.log(`Entregador Designado: ${entrega.entregadores.nome} (Veículo: ${entrega.entregadores.veiculo})`);
 
-            // Verificando o banco para atestar que o Prisma aceitou o status "EM_ENTREGA" corretamente
+            // 2. verifica no banco se o prisma aceitou o status corretamente
             const entregadorDb = await prisma.entregadores.findUnique({ where: { id: entrega.entregador_id }});
             console.log(`Status do Entregador no BD C#/Prisma: ${entregadorDb.status}`);
         } else {

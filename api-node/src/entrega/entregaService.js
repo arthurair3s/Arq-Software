@@ -41,7 +41,7 @@ export const atribuirMelhorEntregador = async pedidoId => {
     throw new Error('Restaurante sem coordenadas geográficas cadastradas.')
   }
 
-  // 1. Busca entregadores próximos (5km) chamando o gRPC C# (Entregadores)
+  // 1. busca entregadores proximos (5km) via grpc
   const candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 5.0)
   if (!candidatos || candidatos.length === 0) {
     throw new Error('Nenhum entregador disponível no raio de 5km.')
@@ -50,7 +50,7 @@ export const atribuirMelhorEntregador = async pedidoId => {
   let melhor = null
   let etaFinal = 0
 
-  // 2. Lógica de Batching: prioriza entregar 2 pedidos pra mesma pessoa se ela já estiver na loja
+  // 2. logica de batching: prioriza quem ja esta na loja
   const ocupados = candidatos.filter(e => e.status === 'EM_ENTREGA' || e.status === 2 || e.status === '2')
   for (const motociclista of ocupados) {
     const estaNaLoja = await entregaRepository.possuiEntregaAtivaNoRestaurante(motociclista.id, restaurante.id)
@@ -61,7 +61,7 @@ export const atribuirMelhorEntregador = async pedidoId => {
     }
   }
 
-  // 3. Lógica de Rota (ETA real) se nenhum Batching for encontrado
+  // 3. calculo de eta real se nao houver batching
   if (!melhor) {
     const disponiveis = candidatos.filter(e => e.status === 'DISPONIVEL' || e.status === '1' || e.status === 1)
 
@@ -69,9 +69,9 @@ export const atribuirMelhorEntregador = async pedidoId => {
       throw new Error('Nenhum entregador disponível no momento (todos ocupados e sem batch).')
     }
 
-    const selecionados = disponiveis.slice(0, 5) // Pegamos os 5 mais próximos via Redis (raio)
+    const selecionados = disponiveis.slice(0, 5) // 5 mais proximos via redis
 
-    // Consultar o gRPC Python/OSRM para ter o ETA exato pelas ruas
+    // consulta osrm para eta exato nas ruas
     const candidatosComEta = await Promise.all(
       selecionados.map(async entregador => {
         try {
@@ -96,14 +96,14 @@ export const atribuirMelhorEntregador = async pedidoId => {
     console.log(`[Módulo Inteligente] Entregador Livre ${melhor.nome} (ID: ${melhor.id}) selecionado com ETA de ${etaFinal}s.`)
   }
 
-  // 4. Cria a Entrega real no Node.js
+  // 4. cria a entrega no node
   const entrega = await criar({
     pedido_id: pedidoId,
     entregador_id: melhor.id,
     status: 'ATRIBUIDA'
   })
 
-  // 5. Atualiza o status do entregador no microsserviço C# pra não pegar outra corrida aleatória
+  // 5. atualiza status no c# para ocupado
   if (melhor.status === 'DISPONIVEL' || melhor.status === '1' || melhor.status === 1) {
     try {
       await entregadorService.atualizarStatus(melhor.id, 'EM_ENTREGA')

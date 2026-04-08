@@ -6,7 +6,7 @@ export const restauranteResolver = {
   Mutation,
   Restaurante: {
     categorias: async (parent) => {
-      // Import inline or dynamic to avoid circular dependencies if any
+      // import dinamico pra evitar circular dependency
       const categoriaService = await import('../../categoria/categoriaService.js');
       return categoriaService.buscarPorRestaurante(parent.id);
     }

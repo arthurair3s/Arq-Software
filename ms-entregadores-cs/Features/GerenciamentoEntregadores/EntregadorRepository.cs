@@ -16,8 +16,7 @@ namespace Features.GerenciamentoEntregadores
 
     public async Task AtualizaPosicaoRedis(int entregadorId, double latitude, double longitude)
     {
-        // Grava diretamente no Redis sem re-consultar o banco.
-        // O Node BFF já validou o entregador antes de chamar o gRPC.
+        // 1. grava no redis sem re-consultar o banco (ja validado no node)
         _logger.LogInformation("[Redis] GeoAdd -> Entregador {Id} em ({Lat}, {Lon})", entregadorId, latitude, longitude);
         var added = await _redis.GeoAddAsync(GeoKey, longitude, latitude, entregadorId.ToString());
         _logger.LogInformation("[Redis] GeoAdd resultado: {Added}", added);
@@ -30,7 +29,7 @@ namespace Features.GerenciamentoEntregadores
         {
             var pos = positions[0].Value;
             _logger.LogInformation("[Redis] GeoPosition encontrada para {Id}: Lon={Lon}, Lat={Lat}", entregadorId, pos.Longitude, pos.Latitude);
-            // GeoPosition retorna (Longitude, Latitude) nessa ordem
+            // 2. geoposition retorna (longitude, latitude) nessa ordem
             return (pos.Latitude, pos.Longitude);
         }
         _logger.LogWarning("[Redis] GeoPosition para Entregador {Id} não encontrada na chave '{Key}'", entregadorId, GeoKey);
@@ -65,6 +64,7 @@ namespace Features.GerenciamentoEntregadores
 
     public async Task RemoverPosicaoRedis(int entregadorId)
     {
+        // remove do redis pq ficou offline
         _logger.LogInformation("Removendo entregador {Id} do Redis (Ficou OFFLINE)", entregadorId);
         await _redis.GeoRemoveAsync(GeoKey, entregadorId.ToString());
     }

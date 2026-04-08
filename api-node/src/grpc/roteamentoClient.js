@@ -8,7 +8,7 @@ import fs from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Tenta encontrar a pasta protos (2 níveis no Docker /app, 3 níveis no Host)
+// busca a pasta protos (docker vs host)
 const getProtoPath = (filename) => {
   const pathDocker = path.resolve(__dirname, '..', '..', 'protos', filename)
   if (fs.existsSync(pathDocker)) return pathDocker

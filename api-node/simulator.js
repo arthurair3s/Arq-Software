@@ -2,7 +2,7 @@ import 'dotenv/config';
 import entregadorClient from './src/grpc/entregadorClient.js';
 import * as entregadorService from './src/entregador/entregadorService.js';
 
-// Coordenada base (Zona Norte RJ - Eixo Higienópolis / Maria da Graça / Cachambi)
+// coordenada base (eixo maria da graca / cachambi)
 const BASE_LAT = -22.8770;
 const BASE_LNG = -43.2566;
 
@@ -30,7 +30,7 @@ async function garantirFrotaMinima(entregadoresAtuais) {
     }
   }
   
-  // Retorna a lista completa atualizada do banco
+  // retorna a lista completa do banco
   return await entregadorService.listar();
 }
 
@@ -40,7 +40,7 @@ async function iniciarSimulador() {
   let entregadores = [];
   try {
     entregadores = await entregadorService.listar();
-    // Garante que a gente tenha bastante motorista na região pra distribuir as rotas
+    // garante motoristas na regiao para as rotas
     entregadores = await garantirFrotaMinima(entregadores);
     console.log(`${entregadores.length} entregadores apostos para a frota ZN.`);
   } catch (err) {
@@ -48,7 +48,7 @@ async function iniciarSimulador() {
     process.exit(1);
   }
 
-  // Abre a conexão de fluxo contínuo (Stream) de GPS com o C#
+  // abre o stream de gps com o c#
   const stream = entregadorClient.AtualizarLocalizacaoStream((error, response) => {
     if (error) {
       console.error("Erro no Stream de Localização:", error.message);
@@ -59,9 +59,7 @@ async function iniciarSimulador() {
 
   setInterval(() => {
     entregadores.forEach((entregador) => {
-      // Variação ampliada (Aprox. 7km de raio em volta da base)
-      // Math.random() - 0.5 dá um valor entre -0.5 e 0.5.
-      // 1 grau de latitude é aprox 111km. 0.13 * 111 = 14km de diametro (7km de raio)
+      // 1. variacao de aprox 7km de raio em volta da base
       const randomLat = (Math.random() - 0.5) * 0.13; 
       const randomLng = (Math.random() - 0.5) * 0.13;
 

@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ifoodBg text-slate-800 font-sans antialiased m-0;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-md hover:-translate-y-1 overflow-hidden;
+  }
+  .btn {
+    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200 outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+  .btn-primary {
+    @apply bg-ifoodRed text-white hover:bg-ifoodRedDark focus:ring-ifoodRed;
+  }
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-300;
+  }
+  
+  .status-badge {
+    @apply px-3 py-1 text-xs font-semibold rounded-full uppercase tracking-wider shadow-sm border;
+  }
+  .status-pendente { @apply bg-yellow-50 text-yellow-600 border-yellow-200; }
+  .status-atribuida { @apply bg-blue-50 text-blue-600 border-blue-200; }
+  .status-transito { @apply bg-purple-50 text-purple-600 border-purple-200; }
+  .status-entregue { @apply bg-green-50 text-green-600 border-green-200; }
+}
+
+.animate-pulse-fast {
+  animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .7; transform: scale(1.05); }
+}

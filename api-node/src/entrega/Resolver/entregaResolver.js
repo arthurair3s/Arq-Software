@@ -18,7 +18,7 @@ export const entregaResolver = {
       return entregadorService.buscarPorId(parent.entregador_id)
     },
     rota: async (parent, args, context, info) => {
-      // Diagnostic Log: Let's see what's inside parent
+      // 1. log para debug da entrega no resolver
       console.log(`[DEBUG ROTA] Entrega ID: ${parent.id}, Status: "${parent.status}", PedidoID: ${parent.pedido_id}`);
       
       if (!parent.entregador_id || !parent.pedido_id) return null;
@@ -33,15 +33,15 @@ export const entregaResolver = {
           return null;
       }
 
-      // Default Destination: Customer
+      // destino padrao: cliente
       let destLat = pedido.destino_latitude;
       let destLon = pedido.destino_longitude;
 
-      // Safe Status Check: Normalizado para evitar espaços ou case-mismatch
+      // normaliza status para evitar erro de case-mismatch
       const currentStatus = (parent.status || "").trim().toUpperCase();
 
       if (currentStatus === 'ATRIBUIDA') {
-        // Tenta buscar o restaurante_id no pedido (Prisma pode mapear campos snake_case)
+        // tenta buscar o id do restaurante no pedido
         const restId = pedido.restaurante_id || pedido.restauranteId; 
         if (restId) {
           const restaurante = await restauranteService.buscarPorId(restId);

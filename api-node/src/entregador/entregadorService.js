@@ -113,7 +113,7 @@ export const atualizarStatus = (id, novoStatus) => {
 
 export const atualizarLocalizacao = (id, latitude, longitude) => {
   return new Promise((resolve, reject) => {
-    const stream = entregadorClient.AtualizarLocalizacaoStream((error, response) => {
+    const stream = entregadorClient.AtualizarLocalizacaoStream((error, response) => { // abre stream gps c#
       if (error) return reject(error);
       resolve(response.sucesso);
     });
