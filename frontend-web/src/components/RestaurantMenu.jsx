@@ -6,7 +6,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [creatingOrder, setCreatingOrder] = useState(false);
-  
+
   // estado do carrinho de compras
   const [carrinho, setCarrinho] = useState([]);
 
@@ -14,23 +14,23 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
     fetch('http://localhost:4000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         query: GET_RESTAURANTE_MENU,
         variables: { id: restaurante.id }
       })
     })
-    .then(r => r.json())
-    .then(res => {
-      if (res.errors) throw new Error(res.errors[0].message);
-      setData(res.data.restaurante);
-      setLoading(false);
-    })
-    .catch(e => {
-      setError(e);
-      setLoading(false);
-    });
+      .then(r => r.json())
+      .then(res => {
+        if (res.errors) throw new Error(res.errors[0].message);
+        setData(res.data.restaurante);
+        setLoading(false);
+      })
+      .catch(e => {
+        setError(e);
+        setLoading(false);
+      });
   }, [restaurante.id]);
-  
+
   const adicionarAoCarrinho = (produto) => {
     setCarrinho(prev => [...prev, produto]);
   };
@@ -61,7 +61,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
       if (res.errors) throw new Error(res.errors[0].message);
       const pedidoId = res.data.criarPedido.id;
       onOrderCreated(pedidoId, restaurante);
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       alert("Falha ao criar o pedido: " + e.message);
       setCreatingOrder(false);
@@ -72,7 +72,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
     <div className="max-w-6xl mx-auto py-8 px-4 animate-fade-in relative flex flex-col lg:flex-row gap-8">
       {/* 1. cardapio do restaurante */}
       <div className="flex-1">
-        <button 
+        <button
           onClick={onBack}
           className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-ifoodRed transition-colors"
         >
@@ -96,8 +96,8 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">{categoria.nome}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {categoria.produtos && categoria.produtos.map(produto => (
-                    <div 
-                      key={produto.id} 
+                    <div
+                      key={produto.id}
                       className="glass-card p-4 flex flex-col group hover:border-ifoodRed/40 transition-colors"
                     >
                       <div className="flex justify-between items-start mb-1">
@@ -107,8 +107,8 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
                         </span>
                       </div>
                       <p className="text-sm text-gray-500 mb-4 flex-1">{produto.descricao}</p>
-                      
-                      <button 
+
+                      <button
                         onClick={() => adicionarAoCarrinho(produto)}
                         className="mt-auto py-2 px-4 rounded border border-gray-200 text-ifoodRed font-medium hover:bg-red-50 transition"
                       >
@@ -132,7 +132,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
       <div className="w-full lg:w-96">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-4">
           <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-3">Seu Pedido</h3>
-          
+
           {carrinho.length === 0 ? (
             <div className="py-8 text-center text-gray-400">
               <span className="text-4xl block mb-2">🛒</span>
@@ -146,7 +146,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
                     <p className="font-medium text-gray-800 text-sm">{item.nome}</p>
                     <p className="text-green-700 text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => removerDoCarrinho(index)}
                     className="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50"
                   >
@@ -165,7 +165,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
               </span>
             </div>
 
-            <button 
+            <button
               onClick={handleComprar}
               disabled={creatingOrder || loading || carrinho.length === 0}
               className="btn btn-primary w-full py-4 text-lg font-bold shadow-ifoodRed/20 shadow-lg disabled:bg-gray-300 disabled:shadow-none disabled:text-gray-500"

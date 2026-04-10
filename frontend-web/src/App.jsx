@@ -89,8 +89,8 @@ function App() {
           >
             {povoando ? 'povoando...' : '🚀 povoar mapa'}
           </button>
-          
-          <div 
+
+          <div
             className="text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-50 p-1 rounded transition"
             onClick={() => setShowLocationPicker(!showLocationPicker)}
           >
