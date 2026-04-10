@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GET_RESTAURANTE_MENU, CRIAR_PEDIDO } from '../graphql/queries';
 
-export default function RestaurantMenu({ restaurante, onBack, onOrderCreated }) {
+export default function RestaurantMenu({ restaurante, userLocation, onBack, onOrderCreated }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,8 +47,8 @@ export default function RestaurantMenu({ restaurante, onBack, onOrderCreated }) 
     try {
       const variables = {
         restaurante_id: restaurante.id,
-        destino_latitude: -22.9035,
-        destino_longitude: -43.1730,
+        destino_latitude: userLocation.lat,
+        destino_longitude: userLocation.lon,
         valor_total: valorTotal
       };
 

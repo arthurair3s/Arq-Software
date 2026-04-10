@@ -8,6 +8,12 @@ function App() {
   const [activePedidoId, setActivePedidoId] = useState(null)
   const [selectedRestaurante, setSelectedRestaurante] = useState(null)
   const [povoando, setPovoando] = useState(false)
+  const [userLocation, setUserLocation] = useState({
+    lat: -22.9035,
+    lon: -43.1730,
+    label: "Centro, Rio de Janeiro"
+  })
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
 
   const handlePovoarMapa = async () => {
     setPovoando(true)
@@ -25,6 +31,12 @@ function App() {
       setPovoando(false)
     }
   }
+
+  const PRESETS = [
+    { label: "Centro, RJ", lat: -22.9035, lon: -43.1730 },
+    { label: "Cachambi, RJ", lat: -22.8861, lon: -43.2778 },
+    { label: "Copacabana, RJ", lat: -22.9711, lon: -43.1843 }
+  ];
 
   // mostra o rastreador se tiver pedido ativo
   if (activePedidoId) {
@@ -48,6 +60,7 @@ function App() {
       <div className="min-h-screen pt-4">
         <RestaurantMenu
           restaurante={selectedRestaurante}
+          userLocation={userLocation}
           onBack={() => setSelectedRestaurante(null)}
           onOrderCreated={(pedidoId, rest) => {
             setSelectedRestaurante(rest)
@@ -68,7 +81,7 @@ function App() {
             Express Delivery
           </h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
           <button
             onClick={handlePovoarMapa}
             disabled={povoando}
@@ -76,10 +89,39 @@ function App() {
           >
             {povoando ? 'povoando...' : '🚀 povoar mapa'}
           </button>
-          <div className="text-sm font-medium text-gray-500">
+          
+          <div 
+            className="text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-50 p-1 rounded transition"
+            onClick={() => setShowLocationPicker(!showLocationPicker)}
+          >
             Você está em:{' '}
-            <span className="text-slate-800">Zona Norte - RJ</span>
+            <span className="text-ifoodRed font-bold border-b border-dashed border-ifoodRed">
+              {userLocation.label}
+            </span>
           </div>
+
+          {showLocationPicker && (
+            <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-2xl rounded-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in duration-200">
+              <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 px-1">Selecione seu local:</h4>
+              <div className="space-y-1">
+                {PRESETS.map(p => (
+                  <button
+                    key={p.label}
+                    onClick={() => {
+                      setUserLocation(p);
+                      setShowLocationPicker(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${userLocation.label === p.label ? 'bg-red-50 text-ifoodRed font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+                  >
+                    📍 {p.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 pt-3 border-t text-[10px] text-gray-400 text-center">
+                Coordenadas: {userLocation.lat}, {userLocation.lon}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

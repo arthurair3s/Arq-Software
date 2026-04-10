@@ -153,14 +153,13 @@ export const simularDeslocamento = async (entregaId) => {
   let destLon = pedido.destino_longitude;
 
   if (currentStatus === 'ATRIBUIDA') {
-    const restId = pedido.restaurante_id || pedido.restauranteId;
-    const restaurante = await restauranteRepository.buscarRestaurantePorId(restId);
+    const restaurante = await restauranteRepository.buscarRestaurantePorId(pedido.restaurante_id);
     if (restaurante) {
       destLat = restaurante.latitude;
       destLon = restaurante.longitude;
       console.log(`[Simulação] Destino: Restaurante (${restaurante.nome})`);
     } else {
-      console.warn(`[Simulação] ERRO: Restaurante ${restId} não encontrado.`);
+      console.warn(`[Simulação] ERRO: Restaurante ${pedido.restaurante_id} não encontrado.`);
     }
   } else {
     console.log(`[Simulação] Destino: Cliente`);
@@ -237,8 +236,7 @@ export const obterRotaEstavel = async (entregaId) => {
   let destLon = pedido.destino_longitude;
 
   if (currentStatus === 'ATRIBUIDA') {
-    const restId = pedido.restaurante_id || pedido.restauranteId;
-    const restaurante = await restauranteRepository.buscarRestaurantePorId(restId);
+    const restaurante = await restauranteRepository.buscarRestaurantePorId(pedido.restaurante_id);
     if (restaurante) {
       destLat = restaurante.latitude;
       destLon = restaurante.longitude;
@@ -267,8 +265,7 @@ export const obterRotaColeta = async (entregaId) => {
   const motorista = await entregadorService.buscarPorId(entrega.entregador_id);
   if (!pedido || !motorista) return null;
 
-  const restId = pedido.restaurante_id || pedido.restauranteId;
-  const restaurante = await restauranteRepository.buscarRestaurantePorId(restId);
+  const restaurante = await restauranteRepository.buscarRestaurantePorId(pedido.restaurante_id);
   if (!restaurante) return null;
 
   try {
@@ -285,8 +282,7 @@ export const obterRotaEntrega = async (entregaId) => {
   const pedido = await pedidoRepository.buscarPedidoPorId(entrega.pedido_id);
   if (!pedido) return null;
 
-  const restId = pedido.restaurante_id || pedido.restauranteId;
-  const restaurante = await restauranteRepository.buscarRestaurantePorId(restId);
+  const restaurante = await restauranteRepository.buscarRestaurantePorId(pedido.restaurante_id);
   if (!restaurante) return null;
 
   try {

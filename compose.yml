@@ -57,7 +57,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5002
-      OSRM_URL: http://osrm-server:5000/
+      OSRM_URL: http://172.20.0.10:5000/
     depends_on:
       osrm-server:
         condition: service_started

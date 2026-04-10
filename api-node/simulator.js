@@ -3,8 +3,8 @@ import entregadorClient from './src/grpc/entregadorClient.js';
 import * as entregadorService from './src/entregador/entregadorService.js';
 
 // coordenada base (eixo maria da graca / cachambi)
-const BASE_LAT = -22.8770;
-const BASE_LNG = -43.2566;
+const BASE_LAT = -22.9035;
+const BASE_LNG = -43.1730;
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
