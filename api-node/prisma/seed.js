@@ -2,6 +2,7 @@ import pgPkg from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import prismaPkg from '@prisma/client'
 import { fileURLToPath } from 'url'
+import bcrypt from 'bcryptjs'
 
 const { Pool } = pgPkg
 const { PrismaClient } = prismaPkg
@@ -185,10 +186,13 @@ async function main() {
     await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE;`);
   }
 
-  // Usuários
-  console.log('Criando usuários...')
+  // Usuários (com hash de senha)
+  console.log('Criando usuários (com senhas criptografadas)...')
   const usuarios = await Promise.all(
-    USUARIOS.map(u => prisma.usuarios.create({ data: u }))
+    USUARIOS.map(async u => {
+      const hashedSenha = await bcrypt.hash(u.senha, 10)
+      return prisma.usuarios.create({ data: { ...u, senha: hashedSenha } })
+    })
   )
 
   // Restaurantes

@@ -30,9 +30,9 @@ export const GET_RESTAURANTE_MENU = `
 `;
 
 export const CRIAR_PEDIDO = `
-  mutation CriarPedido($restaurante_id: ID!, $destino_latitude: Float!, $destino_longitude: Float!, $valor_total: Float!) {
+  mutation CriarPedido($usuario_id: ID!, $restaurante_id: ID!, $destino_latitude: Float!, $destino_longitude: Float!, $valor_total: Float!) {
     criarPedido(
-      usuario_id: "1", 
+      usuario_id: $usuario_id, 
       restaurante_id: $restaurante_id,
       valor_total: $valor_total,
       destino_latitude: $destino_latitude,
@@ -111,5 +111,46 @@ export const POVOAR_FROTA = `
 export const SIMULAR_DESLOCAMENTO = `
   mutation SimularDeslocamento($id: ID!) {
     simularDeslocamento(id: $id)
+  }
+`;
+
+export const CRIAR_AVALIACAO = `
+  mutation CriarAvaliacao($usuario_id: ID!, $restaurante_id: ID!, $nota: Int, $comentario: String) {
+    criarAvaliacao(usuario_id: $usuario_id, restaurante_id: $restaurante_id, nota: $nota, comentario: $comentario) {
+      id
+    }
+  }
+`;
+
+export const LOGIN = `
+  mutation Login($email: String!, $senha: String!) {
+    login(email: $email, senha: $senha) {
+      token
+      usuario {
+        id
+        nome
+        email
+      }
+    }
+  }
+`;
+
+export const REGISTRO = `
+  mutation Registro($nome: String!, $email: String!, $senha: String!, $telefone: String) {
+    criarUsuario(nome: $nome, email: $email, senha: $senha, telefone: $telefone) {
+      id
+      nome
+      email
+    }
+  }
+`;
+
+export const ME = `
+  query Me {
+    me {
+      id
+      nome
+      email
+    }
   }
 `;

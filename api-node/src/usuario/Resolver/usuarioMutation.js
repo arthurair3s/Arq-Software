@@ -1,6 +1,8 @@
 import * as usuarioService from '../usuarioService.js'
 
 export const Mutation = {
+  login: async (_, { email, senha }) => usuarioService.login(email, senha),
+
   criarUsuario: async (_, args) => usuarioService.criar(args),
 
   editarUsuario: async (_, args) => {

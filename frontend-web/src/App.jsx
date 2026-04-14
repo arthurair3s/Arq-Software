@@ -1,10 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import RestaurantList from './components/RestaurantList'
 import RestaurantMenu from './components/RestaurantMenu'
 import ActiveOrderTracking from './components/ActiveOrderTracking'
+import LoginPage from './components/LoginPage'
+import RegisterPage from './components/RegisterPage'
 import { POVOAR_FROTA } from './graphql/queries'
+import { API_URL } from './config'
 
 function App() {
+  const [usuario, setUsuario] = useState(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [view, setView] = useState('login')
   const [activePedidoId, setActivePedidoId] = useState(null)
   const [selectedRestaurante, setSelectedRestaurante] = useState(null)
   const [povoando, setPovoando] = useState(false)
@@ -15,10 +21,37 @@ function App() {
   })
   const [showLocationPicker, setShowLocationPicker] = useState(false)
 
+  // Verifica se já existe um token salvo ao carregar o app
+  useEffect(() => {
+    const savedUser = localStorage.getItem('usuario')
+    const savedToken = localStorage.getItem('token')
+    if (savedUser && savedToken) {
+      try {
+        setUsuario(JSON.parse(savedUser))
+      } catch {
+        localStorage.removeItem('usuario')
+        localStorage.removeItem('token')
+      }
+    }
+    setCheckingAuth(false)
+  }, [])
+
+  const handleLogin = (user) => {
+    setUsuario(user)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('usuario')
+    setUsuario(null)
+    setActivePedidoId(null)
+    setSelectedRestaurante(null)
+  }
+
   const handlePovoarMapa = async () => {
     setPovoando(true)
     try {
-      await fetch('http://localhost:4000/', {
+      await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: POVOAR_FROTA })
@@ -37,6 +70,28 @@ function App() {
     { label: "Cachambi, RJ", lat: -22.8861, lon: -43.2778 },
     { label: "Copacabana, RJ", lat: -22.9711, lon: -43.1843 }
   ];
+
+  // Tela de carregamento enquanto verifica auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="animate-spin h-8 w-8 border-4 border-red-500 border-t-transparent rounded-full"></div>
+      </div>
+    )
+  }
+
+  // Se não estiver logado, mostra o login
+  if (!usuario) {
+    if (view === 'register') {
+      return (
+        <RegisterPage 
+          onBackToLogin={() => setView('login')} 
+          onRegisterSuccess={() => setView('login')}
+        />
+      )
+    }
+    return <LoginPage onLogin={handleLogin} onRegister={() => setView('register')} />
+  }
 
   // mostra o rastreador se tiver pedido ativo
   if (activePedidoId) {
@@ -122,6 +177,28 @@ function App() {
               </div>
             </div>
           )}
+
+          {/* Info do usuário logado + Logout */}
+          <div className="flex items-center gap-2 border-l pl-4 ml-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm">
+              {usuario.nome.charAt(0).toUpperCase()}
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-xs font-semibold text-gray-800 leading-tight">{usuario.nome}</p>
+              <p className="text-[10px] text-gray-400 leading-tight">{usuario.email}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              className="text-gray-400 hover:text-red-500 transition ml-1 p-1 rounded-lg hover:bg-red-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 

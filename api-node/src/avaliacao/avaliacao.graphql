@@ -2,7 +2,7 @@ type Avaliacao {
   id: ID!
   usuario: Usuario!
   restaurante: Restaurante!
-  nota: Int!
+  nota: Int
   comentario: String
 }
 
@@ -23,7 +23,7 @@ extend type Mutation {
   criarAvaliacao(
     usuario_id: ID!
     restaurante_id: ID!
-    nota: Int!
+    nota: Int
     comentario: String
   ): Avaliacao
 

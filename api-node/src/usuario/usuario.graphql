@@ -5,12 +5,20 @@ type Usuario {
   telefone: String
 }
 
+type LoginResponse {
+  token: String!
+  usuario: Usuario!
+}
+
 extend type Query {
   usuarios: [Usuario]
   usuario(id: ID!): Usuario
+  me: Usuario
 }
 
 extend type Mutation {
+  login(email: String!, senha: String!): LoginResponse
+
   criarUsuario(
     nome: String!
     email: String!
@@ -28,3 +36,4 @@ extend type Mutation {
 
   deletarUsuario(id: ID!): Boolean
 }
+

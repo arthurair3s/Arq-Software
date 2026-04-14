@@ -35,3 +35,9 @@ export const deletarUsuario = async id => {
     where: { id: Number(id) }
   })
 }
+
+export const buscarUsuarioPorEmail = async email => {
+  return await prisma.usuarios.findUnique({
+    where: { email }
+  })
+}

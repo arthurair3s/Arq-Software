@@ -41,21 +41,34 @@ function RecenterMap({ bounds }) {
   return null;
 }
 
-export default function TrackingMap({ rotaColeta, rotaEntrega, motoPos, restaurantePos, clientePos }) {
+export default function TrackingMap({ status, rotaColeta, rotaEntrega, motoPos, restaurantePos, clientePos }) {
   const coletaCoords = rotaColeta?.caminho?.map(p => [p.latitude, p.longitude]) || [];
   const entregaCoords = rotaEntrega?.caminho?.map(p => [p.latitude, p.longitude]) || [];
 
   // coordenadas dos pontos fixos (não se movem com a rota dinâmica)
-  const restPos = restaurantePos?.latitude ? [restaurantePos.latitude, restaurantePos.longitude] : null;
-  const destPos = clientePos?.latitude ? [clientePos.latitude, clientePos.longitude] : null;
+  const restPos = (restaurantePos && restaurantePos.latitude != null && !isNaN(restaurantePos.latitude)) 
+    ? [Number(restaurantePos.latitude), Number(restaurantePos.longitude)] : null;
+  const destPos = (clientePos && clientePos.latitude != null && !isNaN(clientePos.latitude)) 
+    ? [Number(clientePos.latitude), Number(clientePos.longitude)] : null;
 
   // calcula os bounds para enquadrar tudo
-  const allPoints = [...coletaCoords, ...entregaCoords];
-  if (motoPos) allPoints.push([motoPos.latitude, motoPos.longitude]);
-  if (restPos) allPoints.push(restPos);
-  if (destPos) allPoints.push(destPos);
+  // Só incluímos na conta de zoom as rotas que estão visíveis
+  const visiblePoints = [];
+  if (motoPos) visiblePoints.push([motoPos.latitude, motoPos.longitude]);
+  if (restPos) visiblePoints.push(restPos);
+  if (destPos) visiblePoints.push(destPos);
   
-  const bounds = allPoints.length > 0 ? L.latLngBounds(allPoints) : null;
+  // Lógica Robusta:
+  // 1. Mostramos a coleta se o status for ATRIBUIDA ou se ainda não tiver status (início)
+  const showColeta = !status || status === 'ATRIBUIDA' || status === 'PENDENTE';
+  
+  // 2. Mostramos a entrega APENAS se o status for explicitamente EM_TRANSITO ou ENTREGUE
+  const showEntrega = status === 'EM_TRANSITO' || status === 'ENTREGUE';
+
+  if (showColeta) visiblePoints.push(...coletaCoords);
+  if (showEntrega) visiblePoints.push(...entregaCoords);
+  
+  const bounds = visiblePoints.length > 0 ? L.latLngBounds(visiblePoints) : null;
 
   return (
     <div className="h-[400px] w-full rounded-2xl overflow-hidden glass-card border-none shadow-2xl relative">
@@ -70,8 +83,8 @@ export default function TrackingMap({ rotaColeta, rotaEntrega, motoPos, restaura
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
 
-        {/* rota de coleta (driver -> store) em azul */}
-        {coletaCoords.length > 0 && (
+        {/* rota de coleta (driver -> store) em azul - só aparece enquanto está indo buscar */}
+        {coletaCoords.length > 0 && showColeta && (
           <Polyline 
             positions={coletaCoords} 
             color="#38bdf8" 
@@ -81,8 +94,8 @@ export default function TrackingMap({ rotaColeta, rotaEntrega, motoPos, restaura
           />
         )}
 
-        {/* rota de entrega (store -> guest) em verde */}
-        {entregaCoords.length > 0 && (
+        {/* rota de entrega (store -> guest) em verde - só aparece após a retirada */}
+        {entregaCoords.length > 0 && showEntrega && (
           <Polyline 
             positions={entregaCoords} 
             color="#10b981" 

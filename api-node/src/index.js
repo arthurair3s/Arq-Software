@@ -5,6 +5,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { resolvers } from './resolvers.js'
+import { verificarToken } from './usuario/usuarioService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -40,6 +41,12 @@ const { url } = await startStandaloneServer(server, {
   cors: {
     origin: '*',
     credentials: true
+  },
+  context: async ({ req }) => {
+    const authHeader = req.headers.authorization || ''
+    const token = authHeader.replace('Bearer ', '')
+    const user = token ? verificarToken(token) : null
+    return { user }
   }
 })
 

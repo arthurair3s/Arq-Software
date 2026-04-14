@@ -1,13 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { ACOMPANHAR_PEDIDO, ATUALIZAR_STATUS_ENTREGA, SIMULAR_DESLOCAMENTO } from '../graphql/queries';
+import React, { useState, useEffect, useRef } from 'react';
+import { ACOMPANHAR_PEDIDO, ATUALIZAR_STATUS_ENTREGA, SIMULAR_DESLOCAMENTO, CRIAR_AVALIACAO } from '../graphql/queries';
 import TrackingMap from './TrackingMap';
 import { API_URL } from '../config';
+import { Star } from 'lucide-react';
 
 export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [simulando, setSimulando] = useState(false);
+
+  // Estados para Avaliação
+  const [showRating, setShowRating] = useState(false);
+  const [nota, setNota] = useState(0);
+  const [comentario, setComentario] = useState('');
+  const [ratingEnviado, setRatingEnviado] = useState(false);
+
+  // Refs para evitar closures desatualizados no polling
+  const ratingPromptedRef = useRef(false);
+  const ratingSentRef = useRef(false);
 
   useEffect(() => {
     // polling a cada 3 segundos
@@ -25,6 +36,14 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
           if (res.errors) throw new Error(res.errors[0].message);
           setData(res.data.pedido);
           setLoading(false);
+
+          // Se acabou de chegar no status ENTREGUE, mostra modal se não tiver sido exibido ainda e não enviado
+          const pedido = res.data.pedido;
+          const statusEntrega = pedido?.entregas?.[0]?.status?.toUpperCase();
+          if (statusEntrega === 'ENTREGUE' && !ratingPromptedRef.current && !ratingSentRef.current) {
+            setShowRating(true);
+            ratingPromptedRef.current = true;
+          }
         })
         .catch(e => {
           console.error(e);
@@ -48,7 +67,11 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
           variables: { id: entregaId, status: novoStatus }
         })
       });
-      // o polling busca a mudanca em 3s
+
+      if (novoStatus.toUpperCase() === 'ENTREGUE') {
+        setShowRating(true);
+        ratingPromptedRef.current = true;
+      }
     } catch (e) {
       console.error(e);
       alert("Erro ao mudar o status!");
@@ -60,7 +83,7 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
       alert("Aguarde a atribuição de um entregador...");
       return;
     }
-    
+
     setSimulando(true);
     try {
       const res = await fetch(API_URL, {
@@ -74,13 +97,38 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
 
       if (res.errors) throw new Error(res.errors[0].message);
       if (res.data.simularDeslocamento === false) {
-          throw new Error("O servidor não conseguiu calcular a rota para a simulação.");
+        throw new Error("O servidor não conseguiu calcular a rota para a simulação.");
       }
     } catch (e) {
       console.error(e);
       alert("Erro ao iniciar simulação: " + e.message);
     } finally {
       setSimulando(false);
+    }
+  };
+
+  const handleEnviarAvaliacao = async () => {
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('usuario') || '{}');
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: CRIAR_AVALIACAO,
+          variables: {
+            usuario_id: savedUser.id || "1",
+            restaurante_id: restaurante.id,
+            nota: nota > 0 ? nota : null,
+            comentario: comentario || null
+          }
+        })
+      });
+      setRatingEnviado(true);
+      ratingSentRef.current = true;
+      setShowRating(false);
+    } catch (e) {
+      console.error(e);
+      alert("Erro ao enviar avaliação.");
     }
   };
 
@@ -157,13 +205,13 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
 
           <h3 className="font-medium text-slate-400 text-sm mb-4">Painel Técnico (Motorista Mock)</h3>
-          
+
           {/* Lógica para escolher qual info de trajeto exibir */}
           {(() => {
-            const rotaAtiva = 
+            const rotaAtiva =
               entrega?.status?.toUpperCase() === 'ATRIBUIDA' ? entrega?.rota_coleta :
-              entrega?.status?.toUpperCase() === 'EM_TRANSITO' ? entrega?.rota_entrega :
-              null;
+                entrega?.status?.toUpperCase() === 'EM_TRANSITO' ? entrega?.rota_entrega :
+                  null;
 
             const dist = rotaAtiva?.distancia_total_km || 0;
             const tempo = rotaAtiva?.duracao_total_segundos || 0;
@@ -185,9 +233,9 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
             >
               {simulando ? '⌛ processando...' : (
                 !entrega ? 'Aguardando atribuição...' :
-                entrega?.status?.toUpperCase() === 'ATRIBUIDA' ? '🛵 simular: ir para o restaurante' :
-                  entrega?.status?.toUpperCase() === 'EM_TRANSITO' ? '🏠 simular: ir para o cliente' :
-                    'iniciar deslocamento automatico'
+                  entrega?.status?.toUpperCase() === 'ATRIBUIDA' ? '🛵 simular: ir para o restaurante' :
+                    entrega?.status?.toUpperCase() === 'EM_TRANSITO' ? '🏠 simular: ir para o cliente' :
+                      'iniciar deslocamento automatico'
               )}
             </button>
             <button
@@ -209,13 +257,14 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
 
         {/* 3. mapa interativo (A-B-C) */}
         <div className="flex flex-col gap-4 mt-8 md:col-span-2">
-          <TrackingMap 
-            rotaColeta={entrega?.rota_coleta} 
-            rotaEntrega={entrega?.rota_entrega} 
-            motoPos={{ 
+          <TrackingMap
+            status={entrega?.status?.toUpperCase()}
+            rotaColeta={entrega?.rota_coleta}
+            rotaEntrega={entrega?.rota_entrega}
+            motoPos={{
               latitude: Number(moto?.latitude) || 0,
-              longitude: Number(moto?.longitude) || 0 
-            }} 
+              longitude: Number(moto?.longitude) || 0
+            }}
             restaurantePos={{
               latitude: Number(restaurante?.latitude),
               longitude: Number(restaurante?.longitude)
@@ -225,6 +274,77 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
               longitude: Number(data?.destino_longitude)
             }}
           />
+        </div>
+      </div>
+
+      {showRating && !ratingEnviado && (
+        <RatingModal
+          nota={nota}
+          setNota={setNota}
+          comentario={comentario}
+          setComentario={setComentario}
+          onSend={handleEnviarAvaliacao}
+          onSkip={() => setShowRating(false)}
+          restauranteNome={restaurante?.nome || 'nossa loja'}
+        />
+      )}
+    </div>
+  );
+}
+
+function RatingModal({ nota, setNota, comentario, setComentario, onSend, onSkip, restauranteNome }) {
+  const [hover, setHover] = useState(0);
+
+  return (
+    <div className="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="glass-card max-w-md w-full p-8 bg-white shadow-2xl animate-scale-up">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🎉</div>
+          <h2 className="text-2xl font-bold text-gray-900">Pedido Entregue!</h2>
+          <p className="text-gray-500 mt-2">Como foi sua experiência com o {restauranteNome}?</p>
+        </div>
+
+        {/* Estrelas */}
+        <div className="flex justify-center gap-2 mb-8">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onMouseEnter={() => setHover(star)}
+              onMouseLeave={() => setHover(0)}
+              onClick={() => setNota(star)}
+              className="transition-transform active:scale-90 hover:scale-110"
+            >
+              <Star
+                size={40}
+                fill={(hover || nota) >= star ? "#fbbf24" : "transparent"}
+                color={(hover || nota) >= star ? "#fbbf24" : "#cbd5e1"}
+                strokeWidth={1.5}
+              />
+            </button>
+          ))}
+        </div>
+
+        {/* Comentário */}
+        <textarea
+          value={comentario}
+          onChange={(e) => setComentario(e.target.value)}
+          placeholder="Escreva sua avaliação (opcional)..."
+          className="w-full h-32 p-4 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-gray-700 mb-6"
+        />
+
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={onSend}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+          >
+            Enviar Avaliação
+          </button>
+          <button
+            onClick={onSkip}
+            className="w-full py-2 text-gray-400 font-medium hover:text-gray-600 transition-colors"
+          >
+            Pular agora
+          </button>
         </div>
       </div>
     </div>
