@@ -1,14 +1,38 @@
 _format_version: "3.0"
 _transform: true
 
+consumers:
+  - username: app-usuario
+    jwt_secrets:
+      - key: express-delivery-app
+        algorithm: HS256
+        secret: express-delivery-secret-key-2026
+
+  - username: anonimo
+    id: "00000000-0000-0000-0000-000000000001"
+
 services:
   - name: api-graphql
     url: http://api:4000/
+    connect_timeout: 5000
+    read_timeout: 30000
+    write_timeout: 30000
     routes:
       - name: graphql-route
         paths:
           - /graphql
-        strip_path: true
+        strip_path: false
+
+  - name: frontend
+    url: http://frontend:5173/
+    connect_timeout: 5000
+    read_timeout: 30000
+    write_timeout: 30000
+    routes:
+      - name: frontend-route
+        paths:
+          - /
+        strip_path: false
 
 plugins:
   - name: cors
@@ -33,3 +57,17 @@ plugins:
         - Authorization
       credentials: true
       max_age: 3600
+
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local
+      hide_client_headers: false
+
+  - name: jwt
+    route: graphql-route
+    config:
+      claims_to_verify:
+        - exp
+      key_claim_name: iss
+      anonymous: "00000000-0000-0000-0000-000000000001"

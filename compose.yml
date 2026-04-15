@@ -85,8 +85,8 @@ services:
       context: ./api-node
       dockerfile: Dockerfile
     container_name: api_delivery
-    ports:
-      - '4000:4000'
+    expose:
+      - '4000'
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/ifood_clone?schema=public
       ENTREGADORES_SERVICE_URL: ms_entregadores:5001
@@ -113,8 +113,8 @@ services:
       context: ./frontend-web
       dockerfile: Dockerfile
     container_name: frontend_web
-    ports:
-      - '5173:5173'
+    expose:
+      - '5173'
     depends_on:
       - api
     volumes:
