@@ -109,6 +109,9 @@ model usuarios {
   email      String       @unique @db.VarChar(150)
   telefone   String?      @db.VarChar(20)
   senha      String?      @db.VarChar(100)
+  latitude   Float?
+  longitude  Float?
+  endereco   String?      @db.Text
   avaliacoes avaliacoes[]
   pedidos    pedidos[]
 }

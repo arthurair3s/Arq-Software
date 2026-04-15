@@ -30,7 +30,7 @@ export const GET_RESTAURANTE_MENU = `
 `;
 
 export const CRIAR_PEDIDO = `
-  mutation CriarPedido($usuario_id: ID!, $restaurante_id: ID!, $destino_latitude: Float!, $destino_longitude: Float!, $valor_total: Float!) {
+  mutation CriarPedido($usuario_id: ID!, $restaurante_id: ID!, $destino_latitude: Float, $destino_longitude: Float, $valor_total: Float!) {
     criarPedido(
       usuario_id: $usuario_id, 
       restaurante_id: $restaurante_id,
@@ -130,6 +130,9 @@ export const LOGIN = `
         id
         nome
         email
+        latitude
+        longitude
+        endereco
       }
     }
   }
@@ -151,6 +154,20 @@ export const ME = `
       id
       nome
       email
+      latitude
+      longitude
+      endereco
+    }
+  }
+`;
+
+export const ATUALIZAR_ENDERECO = `
+  mutation AtualizarEndereco($latitude: Float!, $longitude: Float!, $endereco: String!) {
+    atualizarEndereco(latitude: $latitude, longitude: $longitude, endereco: $endereco) {
+      id
+      latitude
+      longitude
+      endereco
     }
   }
 `;

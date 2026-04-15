@@ -41,3 +41,26 @@ export const buscarUsuarioPorEmail = async email => {
     where: { email }
   })
 }
+
+export const atualizarEndereco = async (id, { latitude, longitude, endereco }) => {
+  const userId = Number(id)
+  
+  if (isNaN(userId)) {
+    throw new Error(`ID de usuário inválido: ${id}`)
+  }
+
+  // Garante que latitude e longitude sejam números válidos ou undefined (para não sobrescrever com NaN)
+  const lat = latitude !== null && latitude !== undefined ? parseFloat(latitude) : undefined
+  const lon = longitude !== null && longitude !== undefined ? parseFloat(longitude) : undefined
+
+  console.log(`[Repository] Atualizando endereço para usuário ${userId}:`, { lat, lon, endereco })
+
+  return await prisma.usuarios.update({
+    where: { id: userId },
+    data: {
+      latitude: isNaN(lat) ? undefined : lat,
+      longitude: isNaN(lon) ? undefined : lon,
+      endereco: endereco || undefined
+    }
+  })
+}

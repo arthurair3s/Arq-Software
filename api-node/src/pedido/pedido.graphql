@@ -24,8 +24,8 @@ extend type Mutation {
     restaurante_id: ID!
     status: String
     valor_total: Float
-    destino_latitude: Float!
-    destino_longitude: Float!
+    destino_latitude: Float
+    destino_longitude: Float
     data_criacao: String
   ): Pedido
 

@@ -4,6 +4,7 @@ import RestaurantMenu from './components/RestaurantMenu'
 import ActiveOrderTracking from './components/ActiveOrderTracking'
 import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
+import AddressBar from './components/AddressBar'
 import { POVOAR_FROTA } from './graphql/queries'
 import { API_URL } from './config'
 
@@ -14,12 +15,6 @@ function App() {
   const [activePedidoId, setActivePedidoId] = useState(null)
   const [selectedRestaurante, setSelectedRestaurante] = useState(null)
   const [povoando, setPovoando] = useState(false)
-  const [userLocation, setUserLocation] = useState({
-    lat: -22.9035,
-    lon: -43.1730,
-    label: "Centro, Rio de Janeiro"
-  })
-  const [showLocationPicker, setShowLocationPicker] = useState(false)
 
   // Verifica se já existe um token salvo ao carregar o app
   useEffect(() => {
@@ -65,11 +60,12 @@ function App() {
     }
   }
 
-  const PRESETS = [
-    { label: "Centro, RJ", lat: -22.9035, lon: -43.1730 },
-    { label: "Cachambi, RJ", lat: -22.8861, lon: -43.2778 },
-    { label: "Copacabana, RJ", lat: -22.9711, lon: -43.1843 }
-  ];
+  // Objeto de localizacao derivado do usuario
+  const userLocation = {
+    lat: usuario?.latitude,
+    lon: usuario?.longitude,
+    label: usuario?.endereco
+  }
 
   // Tela de carregamento enquanto verifica auth
   if (checkingAuth) {
@@ -128,7 +124,7 @@ function App() {
 
   // view principal: lista de restaurantes
   return (
-    <div className="min-h-screen pt-4">
+    <div className="min-h-screen pt-4 pb-20">
       <div className="max-w-5xl mx-auto px-4 mb-4 flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-2">
           <span className="text-3xl">🛵</span>
@@ -144,39 +140,6 @@ function App() {
           >
             {povoando ? 'povoando...' : '🚀 povoar mapa'}
           </button>
-
-          <div
-            className="text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-50 p-1 rounded transition"
-            onClick={() => setShowLocationPicker(!showLocationPicker)}
-          >
-            Você está em:{' '}
-            <span className="text-ifoodRed font-bold border-b border-dashed border-ifoodRed">
-              {userLocation.label}
-            </span>
-          </div>
-
-          {showLocationPicker && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-2xl rounded-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in duration-200">
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 px-1">Selecione seu local:</h4>
-              <div className="space-y-1">
-                {PRESETS.map(p => (
-                  <button
-                    key={p.label}
-                    onClick={() => {
-                      setUserLocation(p);
-                      setShowLocationPicker(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${userLocation.label === p.label ? 'bg-red-50 text-ifoodRed font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
-                  >
-                    📍 {p.label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3 pt-3 border-t text-[10px] text-gray-400 text-center">
-                Coordenadas: {userLocation.lat}, {userLocation.lon}
-              </div>
-            </div>
-          )}
 
           {/* Info do usuário logado + Logout */}
           <div className="flex items-center gap-2 border-l pl-4 ml-2">
@@ -202,7 +165,10 @@ function App() {
         </div>
       </div>
 
-      <RestaurantList onSelectRestaurant={setSelectedRestaurante} />
+      <div className="max-w-5xl mx-auto px-4">
+        <AddressBar usuario={usuario} setUsuario={setUsuario} />
+        <RestaurantList onSelectRestaurant={setSelectedRestaurante} />
+      </div>
     </div>
   )
 }

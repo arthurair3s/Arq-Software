@@ -64,3 +64,7 @@ export const verificarToken = (token) => {
     return null
   }
 }
+
+export const atualizarEndereco = async (id, dados) => {
+  return usuarioRepository.atualizarEndereco(id, dados)
+}

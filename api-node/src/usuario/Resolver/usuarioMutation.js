@@ -10,5 +10,17 @@ export const Mutation = {
     return usuarioService.editarPorId(id, dados)
   },
 
-  deletarUsuario: async (_, { id }) => !!(await usuarioService.deletar(id))
+  deletarUsuario: async (_, { id }) => !!(await usuarioService.deletar(id)),
+
+  atualizarEndereco: async (_, args, { user }) => {
+    if (!user || !user.id) {
+      throw new Error('Não autenticado.')
+    }
+    try {
+      return await usuarioService.atualizarEndereco(user.id, args)
+    } catch (error) {
+      console.error('[ERRO] Falha ao atualizar endereço:', error)
+      throw error
+    }
+  },
 }

@@ -3,6 +3,9 @@ type Usuario {
   nome: String!
   email: String!
   telefone: String
+  latitude: Float
+  longitude: Float
+  endereco: String
 }
 
 type LoginResponse {
@@ -32,6 +35,12 @@ extend type Mutation {
     email: String
     telefone: String
     senha: String
+  ): Usuario
+
+  atualizarEndereco(
+    latitude: Float!
+    longitude: Float!
+    endereco: String!
   ): Usuario
 
   deletarUsuario(id: ID!): Boolean

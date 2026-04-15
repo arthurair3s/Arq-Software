@@ -44,6 +44,13 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
 
   const handleComprar = async () => {
     if (carrinho.length === 0) return;
+    
+    // Validação de endereço obrigatório
+    if (!userLocation.lat || !userLocation.lon) {
+      alert("Por favor, defina seu endereço de entrega antes de finalizar o pedido!");
+      return;
+    }
+
     setCreatingOrder(true);
     try {
       const savedUser = JSON.parse(localStorage.getItem('usuario') || '{}');
@@ -170,10 +177,10 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
 
             <button
               onClick={handleComprar}
-              disabled={creatingOrder || loading || carrinho.length === 0}
+              disabled={creatingOrder || loading || carrinho.length === 0 || !userLocation.lat}
               className="btn btn-primary w-full py-4 text-lg font-bold shadow-ifoodRed/20 shadow-lg disabled:bg-gray-300 disabled:shadow-none disabled:text-gray-500"
             >
-              {creatingOrder ? 'Carregando...' : (carrinho.length === 0 ? 'Carrinho Vazio' : 'Finalizar Pedido')}
+              {creatingOrder ? 'Carregando...' : (carrinho.length === 0 ? 'Carrinho Vazio' : (!userLocation.lat ? 'Defina seu Endereço' : 'Finalizar Pedido'))}
             </button>
           </div>
         </div>
