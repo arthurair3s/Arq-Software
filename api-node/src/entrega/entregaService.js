@@ -44,7 +44,6 @@ export const atribuirMelhorEntregador = async pedidoId => {
     throw new Error('Restaurante sem coordenadas geográficas cadastradas.')
   }
 
-  // 1. busca entregadores proximos (2.5km) via grpc - Raio reduzido conforme solicitado
   let candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 2.5)
   
   if (!candidatos || candidatos.length === 0) {
@@ -56,9 +55,11 @@ export const atribuirMelhorEntregador = async pedidoId => {
   let etaFinal = 0
 
   if (!candidatos || candidatos.length === 0) {
+    import('../utils/logger.js').then(({ logger }) => {
+      logger.warn(`Radar vazio para o restaurante ${restaurante.nome} (ID: ${restaurante.id}). Ativando Modo de Segurança.`, 'EntregaService');
+    });
     console.warn('[Módulo Inteligente] >>> RADAR VAZIO. Ativando Modo de Segurança (Teletransporte)...');
     
-    // 2a. Busca qualquer entregador cadastrado no Postgres
     const todos = await entregadorService.listar();
     if (!todos || todos.length === 0) {
       throw new Error('Nenhum entregador cadastrado no sistema. Por favor, clique em "Povoar Frota" primeiro.');
@@ -67,19 +68,16 @@ export const atribuirMelhorEntregador = async pedidoId => {
     melhor = todos[0];
     console.log(`[Módulo Inteligente] >>> Selecionado entregador aleatório para simulação: ${melhor.nome} (ID: ${melhor.id})`);
     
-    // 2b. Teletransporta o motoboy para perto do restaurante (aprox 500m)
     const forceLat = restaurante.latitude + 0.005;
     const forceLon = restaurante.longitude + 0.005;
     await entregadorService.atualizarLocalizacao(melhor.id, forceLat, forceLon);
     await entregadorService.atualizarStatus(melhor.id, 'DISPONIVEL');
 
-    // IMPORTANTE: Atualiza o objeto na memória para o cálculo de ETA abaixo não usar 0,0
     melhor.latitude = forceLat;
     melhor.longitude = forceLon;
     
-    etaFinal = 30; // ETA fixo para fallback
+    etaFinal = 30; 
   } else {
-    // 2c. Logica normal: filtra por status disponivel
     const disponiveis = candidatos.filter(e => e.status === 'DISPONIVEL' || e.status === '1' || e.status === 1)
 
     if (disponiveis.length === 0) {
@@ -87,9 +85,8 @@ export const atribuirMelhorEntregador = async pedidoId => {
       melhor = candidatos[0];
       etaFinal = 60;
     } else {
-      const selecionados = disponiveis.slice(0, 5) // 5 mais proximos via redis
+      const selecionados = disponiveis.slice(0, 5) 
 
-      // consulta osrm para eta exato nas ruas
       const candidatosComEta = await Promise.all(
         selecionados.map(async entregador => {
           try {
@@ -114,14 +111,12 @@ export const atribuirMelhorEntregador = async pedidoId => {
 
   console.log(`[Módulo Inteligente] Sucesso: Entregador ${melhor.nome} vinculado ao pedido ${pedidoId}.`);
 
-  // 4. cria a entrega no node
   const entrega = await criar({
     pedido_id: pedidoId,
     entregador_id: melhor.id,
     status: 'ATRIBUIDA'
   })
 
-  // 5. atualiza status no c# para ocupado
   if (melhor.status === 'DISPONIVEL' || melhor.status === '1' || melhor.status === 1) {
     try {
       await entregadorService.atualizarStatus(melhor.id, 'EM_ENTREGA')
@@ -148,10 +143,8 @@ export const simularDeslocamento = async (entregaId) => {
   const currentStatus = (entrega.status || "").trim().toUpperCase();
   console.log(`[Simulação] Início para entrega ${entregaId}. Status: ${currentStatus}`);
 
-  // Bloqueio Síncrono Imediato: Impede que o loop global toque neste motorista
   await entregadorService.bloquearParaSimulacao(entrega.entregador_id);
   
-  // FORÇA status ocupado no gRPC
   await entregadorService.atualizarStatus(entrega.entregador_id, 'EM_ENTREGA');
 
   let destLat = Number(pedido.destino_latitude);
@@ -187,19 +180,18 @@ export const simularDeslocamento = async (entregaId) => {
       if (currentStatus === 'ATRIBUIDA') {
         console.log(`[Simulação] Sucesso: Chegou ao Restaurante. Atualizando para EM_TRANSITO.`);
         await editarPorId(entregaId, { status: 'EM_TRANSITO' });
-        // Mantém bloqueado pois ainda está em entrega (indo para o cliente)
       } else {
         console.log(`[Simulação] Sucesso: Chegou ao Cliente. Finalizando entrega.`);
         await editarPorId(entregaId, { status: 'ENTREGUE' });
         await entregadorService.atualizarStatus(motorista.id, 'DISPONIVEL');
-        entregadorService.liberarDeSimulacao(motorista.id); // Libera para o loop global
+        entregadorService.liberarDeSimulacao(motorista.id);
       }
       return;
     }
 
     const ponto = pontos.shift();
     try {
-      if (pontos.length % 5 === 0) { // loga a cada 5 pontos para nao poluir demais
+      if (pontos.length % 5 === 0) {
         console.log(`[Simulação] Motoboy ${motorista.nome} em: ${ponto.latitude.toFixed(5)}, ${ponto.longitude.toFixed(5)} (${pontos.length} restantes)`);
       }
       await entregadorService.atualizarLocalizacao(motorista.id, ponto.latitude, ponto.longitude);
@@ -266,7 +258,6 @@ export const obterRotaColeta = async (entregaId) => {
   const entrega = await buscarPorId(entregaId);
   if (!entrega) return null;
 
-  // Só mostra a rota de coleta se o motorista ainda estiver indo buscar (ATRIBUIDA)
   const currentStatus = (entrega.status || "").trim().toUpperCase();
   if (currentStatus !== 'ATRIBUIDA') return null;
 
@@ -302,8 +293,6 @@ export const obterRotaEntrega = async (entregaId) => {
 
   const currentStatus = (entrega.status || "").trim().toUpperCase();
 
-  // Se o motorista já estiver a caminho do cliente (EM_TRANSITO), 
-  // a rota deve partir da posição atual do motorista, não mais do restaurante.
   let startLat = restaurante.latitude;
   let startLon = restaurante.longitude;
 

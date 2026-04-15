@@ -1,3 +1,4 @@
+import { GraphQLError } from 'graphql'
 import * as pedidoRepository from './pedidoRepository.js'
 import * as entregaService from '../entrega/entregaService.js'
 import * as usuarioRepository from '../usuario/usuarioRepository.js'
@@ -17,7 +18,7 @@ export const criar = async dados => {
   if (!destino_latitude || !destino_longitude) {
     const usuario = await usuarioRepository.buscarUsuarioPorId(usuario_id)
     if (!usuario || !usuario.latitude || !usuario.longitude) {
-      throw new Error('Endereço de entrega não definido no perfil do usuário.')
+      throw new GraphQLError('Endereço de entrega não definido no perfil do usuário.', { extensions: { code: 'BAD_USER_INPUT' } })
     }
     destino_latitude = usuario.latitude
     destino_longitude = usuario.longitude
@@ -35,6 +36,9 @@ export const criar = async dados => {
   try {
     await entregaService.atribuirMelhorEntregador(novoPedido.id);
   } catch (error) {
+    import('../utils/logger.js').then(({ logger }) => {
+      logger.error(`Falha crítica na orquestração de entrega para o pedido ${novoPedido.id}: ${error.message}`, 'PedidoService');
+    });
     console.error(`[Módulo Inteligente] Falhas ao orquestrar a entrega do pedido ${novoPedido.id}:`, error.message);
   }
 

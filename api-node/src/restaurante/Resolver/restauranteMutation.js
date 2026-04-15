@@ -1,18 +1,27 @@
 import { obterCoordenadas } from '../../utils/geocodingService.js'
 import * as restauranteService from '../restauranteService.js'
+import { GraphQLError } from 'graphql'
+import { criarRestauranteSchema, editarRestauranteSchema } from '../restauranteValidation.js'
 
 export const Mutation = {
   criarRestaurante: async (_, args) => {
-    const { nome, descricao, endereco, latitude, longitude } = args
+    const parsed = criarRestauranteSchema.safeParse(args)
+    if (!parsed.success) {
+      throw new GraphQLError(parsed.error.issues[0].message, { extensions: { code: 'BAD_USER_INPUT', zodError: parsed.error.format() } })
+    }
+
+    const { nome, descricao, endereco, latitude, longitude } = parsed.data
 
     let coordenadas = { latitude: latitude || 0, longitude: longitude || 0 }
 
-    // Se não passou lat/long manual mas passou endereço, tenta geocoding
     if (!latitude && !longitude && endereco) {
       try {
         const res = await obterCoordenadas(endereco)
         if (res) coordenadas = res
       } catch (error) {
+        import('../../utils/logger.js').then(({ logger }) => {
+          logger.error(`Falha no Geocoding para o endereço do restaurante: ${endereco}. Erro: ${error.message}`, 'RestauranteMutation');
+        });
         console.log('Falha ao buscar coordenadas, usando padrão 0,0', error)
       }
     }
@@ -27,7 +36,12 @@ export const Mutation = {
   },
 
   editarRestaurante: async (_, args) => {
-    const { id, ...dados } = args
+    const parsed = editarRestauranteSchema.safeParse(args)
+    if (!parsed.success) {
+      throw new GraphQLError(parsed.error.issues[0].message, { extensions: { code: 'BAD_USER_INPUT', zodError: parsed.error.format() } })
+    }
+
+    const { id, ...dados } = parsed.data
 
     if (dados.endereco) {
       const coordenadas = await obterCoordenadas(dados.endereco)

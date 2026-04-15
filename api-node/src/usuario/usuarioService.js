@@ -1,8 +1,17 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { GraphQLError } from 'graphql'
 import * as usuarioRepository from './usuarioRepository.js'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'express-delivery-secret-key-2026'
+import { logger } from '../utils/logger.js'
+
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  logger.error('FATAL: A variável de ambiente JWT_SECRET não foi configurada. A aplicação será encerrada.', 'AuthService');
+  throw new Error('FATAL: A variável de ambiente JWT_SECRET não foi configurada.')
+}
+
 const SALT_ROUNDS = 10
 
 export const listar = async () => {
@@ -10,7 +19,11 @@ export const listar = async () => {
 }
 
 export const buscarPorId = async id => {
-  return usuarioRepository.buscarUsuarioPorId(id)
+  const usuario = await usuarioRepository.buscarUsuarioPorId(id)
+  if (!usuario) {
+    logger.warn(`Tentativa de busca por usuário inexistente. ID: ${id}`, 'UsuarioService');
+  }
+  return usuario
 }
 
 export const buscarPorEmail = async email => {
@@ -21,7 +34,9 @@ export const criar = async dados => {
   if (dados.senha) {
     dados.senha = await bcrypt.hash(dados.senha, SALT_ROUNDS)
   }
-  return usuarioRepository.criarUsuario(dados)
+  const novoUsuario = await usuarioRepository.criarUsuario(dados)
+  logger.debug(`Novo usuário criado: ${novoUsuario.email} (ID: ${novoUsuario.id})`, 'UsuarioService');
+  return novoUsuario
 }
 
 export const editarPorId = async (id, dados) => {
@@ -38,12 +53,14 @@ export const deletar = async id => {
 export const login = async (email, senha) => {
   const usuario = await usuarioRepository.buscarUsuarioPorEmail(email)
   if (!usuario) {
-    throw new Error('E-mail ou senha incorretos.')
+    logger.warn(`Tentativa de login com e-mail inexistente: ${email}`, 'AuthService');
+    throw new GraphQLError('E-mail ou senha incorretos.', { extensions: { code: 'UNAUTHENTICATED' } })
   }
 
   const senhaValida = await bcrypt.compare(senha, usuario.senha)
   if (!senhaValida) {
-    throw new Error('E-mail ou senha incorretos.')
+    logger.warn(`Falha de senha para o usuário: ${email}`, 'AuthService');
+    throw new GraphQLError('E-mail ou senha incorretos.', { extensions: { code: 'UNAUTHENTICATED' } })
   }
 
   const token = jwt.sign(
@@ -58,7 +75,8 @@ export const login = async (email, senha) => {
 export const verificarToken = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET)
-  } catch {
+  } catch (err) {
+    logger.warn(`Token inválido ou expirado detectado: ${err.message}`, 'AuthService');
     return null
   }
 }
