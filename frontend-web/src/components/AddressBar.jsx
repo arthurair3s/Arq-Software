@@ -8,7 +8,6 @@ export default function AddressBar({ usuario, setUsuario }) {
   const [endereco, setEndereco] = useState(usuario?.endereco || '');
   const [loading, setLoading] = useState(false);
 
-  // Sincroniza o estado local com o usuário quando ele mudar (ex: após salvar ou GPS)
   React.useEffect(() => {
     setEndereco(usuario?.endereco || '');
   }, [usuario?.endereco]);
@@ -59,13 +58,11 @@ export default function AddressBar({ usuario, setUsuario }) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          // Simulação de geocodificação reversa para propósitos do MVP
           const simulatedAddress = `Meu Local Atual (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
           handleSave(latitude, longitude, simulatedAddress);
         },
         (error) => {
           console.error(error);
-          // Fallback para um local aleatório se o usuário negar permissão (como sugerido pelo USER)
           const randomLat = -22.9035 + (Math.random() - 0.5) * 0.1;
           const randomLon = -43.1730 + (Math.random() - 0.5) * 0.1;
           handleSave(randomLat, randomLon, "Endereço Aleatório Selecionado");
@@ -122,10 +119,8 @@ export default function AddressBar({ usuario, setUsuario }) {
           ) : (
             <>
               <button 
-                onClick={() => {
-                  const lat = parseFloat(usuario?.latitude || -22.9068);
-                  const lon = parseFloat(usuario?.longitude || -43.1729);
-                  handleSave(lat, lon, endereco);
+                onClick={async () => {
+                  handleSave(null, null, endereco);
                 }}
                 disabled={loading}
                 className="btn btn-sm btn-primary bg-green-600 hover:bg-green-700"

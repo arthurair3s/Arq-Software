@@ -49,11 +49,8 @@ export const atualizarEndereco = async (id, { latitude, longitude, endereco }) =
     throw new Error(`ID de usuário inválido: ${id}`)
   }
 
-  // Garante que latitude e longitude sejam números válidos ou undefined (para não sobrescrever com NaN)
-  const lat = latitude !== null && latitude !== undefined ? parseFloat(latitude) : undefined
-  const lon = longitude !== null && longitude !== undefined ? parseFloat(longitude) : undefined
-
-  console.log(`[Repository] Atualizando endereço para usuário ${userId}:`, { lat, lon, endereco })
+  const lat = latitude != null ? parseFloat(latitude) : undefined
+  const lon = longitude != null ? parseFloat(longitude) : undefined
 
   return await prisma.usuarios.update({
     where: { id: userId },

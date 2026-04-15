@@ -1,4 +1,5 @@
 import * as usuarioService from '../usuarioService.js'
+import { obterCoordenadas } from '../../utils/geocodingService.js'
 
 export const Mutation = {
   login: async (_, { email, senha }) => usuarioService.login(email, senha),
@@ -16,11 +17,17 @@ export const Mutation = {
     if (!user || !user.id) {
       throw new Error('Não autenticado.')
     }
-    try {
-      return await usuarioService.atualizarEndereco(user.id, args)
-    } catch (error) {
-      console.error('[ERRO] Falha ao atualizar endereço:', error)
-      throw error
+
+    let { latitude, longitude, endereco } = args
+
+    if ((!latitude || !longitude) && endereco) {
+      const coords = await obterCoordenadas(endereco)
+      if (coords) {
+        latitude = coords.latitude
+        longitude = coords.longitude
+      }
     }
+
+    return usuarioService.atualizarEndereco(user.id, { latitude, longitude, endereco })
   },
 }

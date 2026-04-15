@@ -162,7 +162,7 @@ export const ME = `
 `;
 
 export const ATUALIZAR_ENDERECO = `
-  mutation AtualizarEndereco($latitude: Float!, $longitude: Float!, $endereco: String!) {
+  mutation AtualizarEndereco($latitude: Float, $longitude: Float, $endereco: String!) {
     atualizarEndereco(latitude: $latitude, longitude: $longitude, endereco: $endereco) {
       id
       latitude
@@ -171,3 +171,4 @@ export const ATUALIZAR_ENDERECO = `
     }
   }
 `;
+

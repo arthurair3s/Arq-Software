@@ -18,7 +18,6 @@ export const buscarPorEmail = async email => {
 }
 
 export const criar = async dados => {
-  // Hash da senha antes de salvar
   if (dados.senha) {
     dados.senha = await bcrypt.hash(dados.senha, SALT_ROUNDS)
   }
@@ -26,7 +25,6 @@ export const criar = async dados => {
 }
 
 export const editarPorId = async (id, dados) => {
-  // Hash da nova senha se fornecida
   if (dados.senha) {
     dados.senha = await bcrypt.hash(dados.senha, SALT_ROUNDS)
   }
@@ -49,7 +47,7 @@ export const login = async (email, senha) => {
   }
 
   const token = jwt.sign(
-    { id: usuario.id, email: usuario.email, nome: usuario.nome },
+    { iss: 'express-delivery-app', id: usuario.id, email: usuario.email, nome: usuario.nome },
     JWT_SECRET,
     { expiresIn: '7d' }
   )
