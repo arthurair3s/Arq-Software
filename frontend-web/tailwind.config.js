@@ -7,9 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        ifoodRed: '#ea1d2c',
-        ifoodRedDark: '#b91322',
-        ifoodBg: '#f7f7f7',
+        brandRed: '#ea1d2c',
+        brandRedDark: '#b91322',
+        brandBg: '#f7f7f7',
       }
     },
   },

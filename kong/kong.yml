@@ -6,7 +6,7 @@ consumers:
     jwt_secrets:
       - key: express-delivery-app
         algorithm: HS256
-        secret: express-delivery-secret-key-2026
+        secret: "{vault://env/jwt_secret}"
 
   - username: anonimo
     id: "00000000-0000-0000-0000-000000000001"

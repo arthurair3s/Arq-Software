@@ -12,5 +12,9 @@ export const Mutation = {
 
   simularDeslocamento: async (_, { id }) => {
     return await entregaService.simularDeslocamento(id);
+  },
+
+  atribuirEntregador: async (_, { pedido_id }) => {
+    return await entregaService.atribuirMelhorEntregador(pedido_id);
   }
 }

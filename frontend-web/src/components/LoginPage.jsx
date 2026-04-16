@@ -41,7 +41,7 @@ export default function LoginPage({ onLogin, onRegister }) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Elementos decorativos de fundo */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-ifoodRed"></div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-brandRed"></div>
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-red-500/5 rounded-full blur-3xl"></div>
       <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-red-500/5 rounded-full blur-3xl"></div>
 
@@ -50,7 +50,7 @@ export default function LoginPage({ onLogin, onRegister }) {
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-2">
             <span className="text-4xl">🛵</span>
-            <h1 className="text-3xl font-bold text-ifoodRed tracking-tight">
+            <h1 className="text-3xl font-bold text-brandRed tracking-tight">
               Express Delivery
             </h1>
           </div>
@@ -69,7 +69,7 @@ export default function LoginPage({ onLogin, onRegister }) {
                 onChange={e => setEmail(e.target.value)}
                 required
                 placeholder="exemplo@email.com"
-                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ifoodRed/20 focus:border-ifoodRed transition-all"
+                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brandRed/20 focus:border-brandRed transition-all"
               />
             </div>
 
@@ -82,12 +82,12 @@ export default function LoginPage({ onLogin, onRegister }) {
                 onChange={e => setSenha(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ifoodRed/20 focus:border-ifoodRed transition-all"
+                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brandRed/20 focus:border-brandRed transition-all"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-ifoodRed text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-brandRed text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                 <span>⚠️</span>
                 {error}
               </div>
@@ -128,10 +128,10 @@ export default function LoginPage({ onLogin, onRegister }) {
                 key={u.email}
                 type="button"
                 onClick={() => { setEmail(u.email); setSenha('senha123'); }}
-                className="w-full flex items-center justify-between p-3 rounded-2xl border border-gray-100 hover:border-ifoodRed/30 hover:bg-red-50/30 transition group"
+                className="w-full flex items-center justify-between p-3 rounded-2xl border border-gray-100 hover:border-brandRed/30 hover:bg-red-50/30 transition group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 group-hover:bg-ifoodRed group-hover:text-white transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 group-hover:bg-brandRed group-hover:text-white transition-colors">
                     {u.img}
                   </div>
                   <div className="text-left">
@@ -139,16 +139,16 @@ export default function LoginPage({ onLogin, onRegister }) {
                     <p className="text-[10px] text-gray-400">{u.email}</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-gray-300 group-hover:text-ifoodRed">→</span>
+                <span className="text-xs font-bold text-gray-300 group-hover:text-brandRed">→</span>
               </button>
             ))}
           </div>
 
           <button
             onClick={() => onRegister()}
-            className="w-full mt-6 text-sm font-bold text-gray-400 hover:text-ifoodRed transition-colors"
+            className="w-full mt-6 text-sm font-bold text-gray-400 hover:text-brandRed transition-colors"
           >
-            Não tem uma conta? <span className="text-ifoodRed underline">Cadastre-se aqui</span>
+            Não tem uma conta? <span className="text-brandRed underline">Cadastre-se aqui</span>
           </button>
         </div>
 

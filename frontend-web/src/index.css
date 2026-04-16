@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-ifoodBg text-slate-800 font-sans antialiased m-0;
+    @apply bg-brandBg text-slate-800 font-sans antialiased m-0;
   }
 }
 
@@ -16,7 +16,7 @@
     @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200 outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
   }
   .btn-primary {
-    @apply bg-ifoodRed text-white hover:bg-ifoodRedDark focus:ring-ifoodRed;
+    @apply bg-brandRed text-white hover:bg-brandRedDark focus:ring-brandRed;
   }
   .btn-secondary {
     @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-300;

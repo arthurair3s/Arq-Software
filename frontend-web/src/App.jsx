@@ -128,7 +128,7 @@ function App() {
       <div className="max-w-5xl mx-auto px-4 mb-4 flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-2">
           <span className="text-3xl">🛵</span>
-          <h1 className="text-2xl font-bold text-ifoodRed tracking-tight">
+          <h1 className="text-2xl font-bold text-brandRed tracking-tight">
             Express Delivery
           </h1>
         </div>

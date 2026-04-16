@@ -47,8 +47,8 @@ export const atribuirMelhorEntregador = async pedidoId => {
   let candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 2.5)
   
   if (!candidatos || candidatos.length === 0) {
-    console.log(`[Módulo Inteligente] Ninguém a 2,5km. Tentando busca elástica de 7,5km...`);
-    candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 7.5);
+    console.log(`[Módulo Inteligente] Ninguém a 2,5km. Tentando busca elástica de 5.0km...`);
+    candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 5.0);
   }
 
   let melhor = null
@@ -56,58 +56,39 @@ export const atribuirMelhorEntregador = async pedidoId => {
 
   if (!candidatos || candidatos.length === 0) {
     import('../utils/logger.js').then(({ logger }) => {
-      logger.warn(`Radar vazio para o restaurante ${restaurante.nome} (ID: ${restaurante.id}). Ativando Modo de Segurança.`, 'EntregaService');
+      logger.warn(`Radar vazio para o restaurante ${restaurante.nome} (ID: ${restaurante.id}). Falha ao encontrar motoboys.`, 'EntregaService');
     });
-    console.warn('[Módulo Inteligente] >>> RADAR VAZIO. Ativando Modo de Segurança (Teletransporte)...');
-    
-    const todos = await entregadorService.listar();
-    if (!todos || todos.length === 0) {
-      throw new Error('Nenhum entregador cadastrado no sistema. Por favor, clique em "Povoar Frota" primeiro.');
-    }
-
-    melhor = todos[0];
-    console.log(`[Módulo Inteligente] >>> Selecionado entregador aleatório para simulação: ${melhor.nome} (ID: ${melhor.id})`);
-    
-    const forceLat = restaurante.latitude + 0.005;
-    const forceLon = restaurante.longitude + 0.005;
-    await entregadorService.atualizarLocalizacao(melhor.id, forceLat, forceLon);
-    await entregadorService.atualizarStatus(melhor.id, 'DISPONIVEL');
-
-    melhor.latitude = forceLat;
-    melhor.longitude = forceLon;
-    
-    etaFinal = 30; 
-  } else {
-    const disponiveis = candidatos.filter(e => e.status === 'DISPONIVEL' || e.status === '1' || e.status === 1)
-
-    if (disponiveis.length === 0) {
-      console.warn('[Módulo Inteligente] Candidatos no radar estão ocupados. Pegando o mais próximo por fallback de simulação.');
-      melhor = candidatos[0];
-      etaFinal = 60;
-    } else {
-      const selecionados = disponiveis.slice(0, 5) 
-
-      const candidatosComEta = await Promise.all(
-        selecionados.map(async entregador => {
-          try {
-            const resumo = await roteamentoService.calcularResumo(
-              Number(entregador.latitude),
-              Number(entregador.longitude),
-              Number(restaurante.latitude),
-              Number(restaurante.longitude)
-            )
-            return { entregador, eta: resumo.duracao_estimada_segundos }
-          } catch (error) {
-            return { entregador, eta: Infinity }
-          }
-        })
-      )
-
-      candidatosComEta.sort((a, b) => a.eta - b.eta)
-      melhor = candidatosComEta[0].entregador
-      etaFinal = candidatosComEta[0].eta
-    }
+    throw new Error('Nenhum entregador disponível num raio de 5km.');
   }
+
+  const disponiveis = candidatos.filter(e => e.status === 'DISPONIVEL' || e.status === '1' || e.status === 1)
+
+  if (disponiveis.length === 0) {
+    console.warn('[Módulo Inteligente] Candidatos no radar estão ocupados. Falhando atribuição.');
+    throw new Error('Todos os entregadores na região estão ocupados no momento.');
+  }
+
+  const selecionados = disponiveis.slice(0, 5) 
+
+  const candidatosComEta = await Promise.all(
+    selecionados.map(async entregador => {
+      try {
+        const resumo = await roteamentoService.calcularResumo(
+          Number(entregador.latitude),
+          Number(entregador.longitude),
+          Number(restaurante.latitude),
+          Number(restaurante.longitude)
+        )
+        return { entregador, eta: resumo.duracao_estimada_segundos }
+      } catch (error) {
+        return { entregador, eta: Infinity }
+      }
+    })
+  )
+
+  candidatosComEta.sort((a, b) => a.eta - b.eta)
+  melhor = candidatosComEta[0].entregador
+  etaFinal = candidatosComEta[0].eta
 
   console.log(`[Módulo Inteligente] Sucesso: Entregador ${melhor.nome} vinculado ao pedido ${pedidoId}.`);
 

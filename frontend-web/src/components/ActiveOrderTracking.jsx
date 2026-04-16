@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ACOMPANHAR_PEDIDO, ATUALIZAR_STATUS_ENTREGA, SIMULAR_DESLOCAMENTO, CRIAR_AVALIACAO } from '../graphql/queries';
+import { ACOMPANHAR_PEDIDO, ATUALIZAR_STATUS_ENTREGA, SIMULAR_DESLOCAMENTO, CRIAR_AVALIACAO, BUSCAR_CANDIDATOS, ATRIBUIR_ENTREGADOR } from '../graphql/queries';
 import TrackingMap from './TrackingMap';
 import { API_URL } from '../config';
 import { Star } from 'lucide-react';
 
 export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel }) {
   const [data, setData] = useState(null);
+  const [candidatos, setCandidatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [simulando, setSimulando] = useState(false);
@@ -56,6 +57,59 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
   }, [pedidoId]);
+
+  useEffect(() => {
+    // Polling de candidatos SOMENTE enquanto a entrega ainda não possui motoboy (não foi atribuída)
+    const entregaOcupada = data?.entregas?.[0];
+    if (entregaOcupada || !restaurante?.id) {
+      if (candidatos.length > 0) setCandidatos([]);
+      return;
+    }
+
+    const fetchCandidatos = () => {
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: BUSCAR_CANDIDATOS,
+          variables: { restauranteId: restaurante.id, raioKm: 5.0 }
+        })
+      })
+      .then(r => r.json())
+      .then(res => {
+         if (!res.errors) {
+           // Limita para no máximo 4 motoristas na tela para não poluir o mapa
+           setCandidatos((res.data.entregadoresProximosAoRestaurante || []).slice(0, 4));
+         }
+      })
+      .catch(console.error);
+    };
+
+    fetchCandidatos();
+    const cadInterval = setInterval(fetchCandidatos, 3000);
+    return () => clearInterval(cadInterval);
+  }, [data, restaurante]);
+
+  const handleAtribuirEntregador = async () => {
+    setSimulando(true);
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: ATRIBUIR_ENTREGADOR,
+          variables: { pedido_id: pedidoId }
+        })
+      }).then(r => r.json());
+
+      if (res.errors) throw new Error(res.errors[0].message);
+    } catch (e) {
+      console.error(e);
+      alert("Erro ao escolher entregador: " + e.message);
+    } finally {
+      setSimulando(false);
+    }
+  };
 
   const handleMudarStatus = async (novoStatus, entregaId) => {
     try {
@@ -165,19 +219,19 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
         <div className="glass-card p-6 flex-1 flex flex-col mb-4">
           <div className="flex items-center justify-between mb-6">
             <span className="text-sm text-gray-500 font-medium uppercase tracking-wider">Status Atual</span>
-            <span className={`status-badge ${entrega?.status?.toLowerCase() === 'entregue' ? 'status-entregue' : 'status-transito'}`}>
+            <span className={`status-badge ${entrega?.status?.toLowerCase() === 'entregue' ? 'status-entregue' : !entrega ? 'status-pendente bg-orange-100 text-orange-800' : 'status-transito'}`}>
               {entrega?.status || data?.status || 'Processando'}
             </span>
           </div>
 
           <div className="border-l-2 border-gray-200 ml-3 pl-6 space-y-8 relative">
             <div className="relative">
-              <span className={`absolute -left-8 w-4 h-4 rounded-full border-2 ${data?.status ? 'bg-ifoodRed border-white' : 'bg-gray-200 border-gray-200'}`}></span>
-              <p className="font-medium text-gray-900">Preparando pedido no Restaurante</p>
+              <span className={`absolute -left-8 w-4 h-4 rounded-full border-2 ${data?.status && !entrega ? 'bg-orange-500 border-white' : data?.status ? 'bg-brandRed border-white' : 'bg-gray-200 border-gray-200'}`}></span>
+              <p className="font-medium text-gray-900">Buscando Entregador</p>
             </div>
             <div className="relative">
-              <span className={`absolute -left-8 w-4 h-4 rounded-full border-2 ${entrega?.status === 'EM_TRANSITO' || entrega?.status === 'ENTREGUE' ? 'bg-ifoodRed border-white' : 'bg-gray-200 border-gray-200'}`}></span>
-              <p className="font-medium text-gray-900">Motoboy a caminho da sua casa</p>
+              <span className={`absolute -left-8 w-4 h-4 rounded-full border-2 ${entrega?.status === 'EM_TRANSITO' || entrega?.status === 'ATRIBUIDA' ? 'bg-brandRed border-white' : 'bg-gray-200 border-gray-200'}`}></span>
+              <p className="font-medium text-gray-900">A caminho da sua casa</p>
             </div>
             <div className="relative">
               <span className={`absolute -left-8 w-4 h-4 rounded-full border-2 ${entrega?.status === 'ENTREGUE' ? 'bg-green-500 border-white' : 'bg-gray-200 border-gray-200'}`}></span>
@@ -208,6 +262,15 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
 
           {/* Lógica para escolher qual info de trajeto exibir */}
           {(() => {
+            if (!entrega) {
+              return (
+                <p className="text-xl font-bold mb-6">
+                   Radar: <span className="text-orange-400">
+                    {candidatos.length > 0 ? `${candidatos.length} entregadores próximos rápidos ⚡` : 'Escaneando a área...'}
+                  </span>
+                </p>
+              )
+            }
             const rotaAtiva =
               entrega?.status?.toUpperCase() === 'ATRIBUIDA' ? entrega?.rota_coleta :
                 entrega?.status?.toUpperCase() === 'EM_TRANSITO' ? entrega?.rota_entrega :
@@ -226,18 +289,27 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
           })()}
 
           <div className="grid grid-cols-1 gap-3">
-            <button
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2"
-              onClick={() => handleIniciarSimulacao(entrega?.id)}
-              disabled={simulando || !entrega || entrega?.status?.toUpperCase() === 'ENTREGUE'}
-            >
-              {simulando ? '⌛ processando...' : (
-                !entrega ? 'Aguardando atribuição...' :
+            {!entrega ? (
+              <button
+                className="bg-orange-500 hover:bg-orange-400 text-white disabled:opacity-50 py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+                onClick={handleAtribuirEntregador}
+                disabled={simulando || candidatos.length === 0}
+              >
+                {simulando ? '⌛ processando...' : 'Simular: Escolher Entregador Mágico'}
+              </button>
+            ) : (
+              <button
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2"
+                onClick={() => handleIniciarSimulacao(entrega?.id)}
+                disabled={simulando || entrega?.status?.toUpperCase() === 'ENTREGUE'}
+              >
+                {simulando ? '⌛ processando...' : (
                   entrega?.status?.toUpperCase() === 'ATRIBUIDA' ? '🛵 simular: ir para o restaurante' :
                     entrega?.status?.toUpperCase() === 'EM_TRANSITO' ? '🏠 simular: ir para o cliente' :
                       'iniciar deslocamento automatico'
-              )}
-            </button>
+                )}
+              </button>
+            )}
             <button
               className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white py-3 rounded-lg font-medium transition"
               onClick={() => handleMudarStatus('EM_TRANSITO', entrega?.id)}
@@ -258,13 +330,14 @@ export default function ActiveOrderTracking({ pedidoId, restaurante, onCancel })
         {/* 3. mapa interativo (A-B-C) */}
         <div className="flex flex-col gap-4 mt-8 md:col-span-2">
           <TrackingMap
-            status={entrega?.status?.toUpperCase()}
+            status={entrega?.status?.toUpperCase() || ''}
+            candidatos={candidatos}
             rotaColeta={entrega?.rota_coleta}
             rotaEntrega={entrega?.rota_entrega}
-            motoPos={{
+            motoPos={moto ? {
               latitude: Number(moto?.latitude) || 0,
               longitude: Number(moto?.longitude) || 0
-            }}
+            } : null}
             restaurantePos={{
               latitude: Number(restaurante?.latitude),
               longitude: Number(restaurante?.longitude)

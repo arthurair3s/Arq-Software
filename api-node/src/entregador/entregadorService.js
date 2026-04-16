@@ -2,8 +2,20 @@ import * as restauranteService from '../restaurante/restauranteService.js'
 import entregadorClient from '../grpc/entregadorClient.js'
 
 let simulacaoInterval = null;
-const BASE_LAT = -22.9035;
-const BASE_LNG = -43.1730;
+const motoristasBases = new Map();
+
+const HUBS_RJ = [
+  { name: 'Copacabana', lat: -22.9711, lng: -43.1822 },
+  { name: 'Centro', lat: -22.9035, lng: -43.1730 },
+  { name: 'Maracanã', lat: -22.9126, lng: -43.2301 },
+  { name: 'Cachambi / Norte Shopping', lat: -22.8860, lng: -43.2770 },
+  { name: 'Méier', lat: -22.9022, lng: -43.2800 },
+  { name: 'Madureira', lat: -22.8735, lng: -43.3360 },
+  { name: 'Barra da Tijuca', lat: -23.0003, lng: -43.3658 },
+  { name: 'Recreio', lat: -23.0183, lng: -43.4672 },
+  { name: 'Bangu', lat: -22.8741, lng: -43.4646 },
+  { name: 'Ilha do Governador', lat: -22.8092, lng: -43.2039 }
+];
 
 const motoristasEmSimulacao = new Set();
 
@@ -140,7 +152,7 @@ export const povoarFrota = async () => {
 
   // 1. garante frota minima
   let entregadores = await listar();
-  const frotaDesejada = 15;
+  const frotaDesejada = 50;
   
   if (entregadores.length < frotaDesejada) {
     const faltam = frotaDesejada - entregadores.length;
@@ -158,27 +170,44 @@ export const povoarFrota = async () => {
     entregadores = await listar();
   }
 
-  // 2. inicia loop de gps aleatorio (3s)
-  simulacaoInterval = setInterval(() => {
-    entregadores.forEach(async e => {
-      // 1. Bloqueio síncrono local (Indispensável para evitar pulos no mapa)
-      if (estaEmSimulacao(e.id)) return;
+  // inicia loop de gps aleatorio (3s)
+  simulacaoInterval = setInterval(async () => {
+    try {
+      const atuais = await listar();
+      atuais.forEach(async e => {
+        if (e.status !== 'DISPONIVEL' && e.status !== 1 && e.status !== '1') return;
 
-      // 2. Garante status disponivel para ser encontrado pelo BFF se estiver livre
-      try { await atualizarStatus(e.id, 'DISPONIVEL'); } catch(err) {}
+        if (estaEmSimulacao(e.id)) return;
 
-      const randomLat = (Math.random() - 0.5) * 0.01;
-      const randomLng = (Math.random() - 0.5) * 0.01;
-      
-      const lat = BASE_LAT + randomLat;
-      const lng = BASE_LNG + randomLng;
+        if (!motoristasBases.has(e.id)) {
+          const hub = HUBS_RJ[Math.floor(Math.random() * HUBS_RJ.length)];
+          // Cria um offset fixo de até 5km para que cada motorista tenha sua própria "área de patrulha"
+          const offsetLat = (Math.random() - 0.5) * 0.05;
+          const offsetLng = (Math.random() - 0.5) * 0.05;
+          motoristasBases.set(e.id, { 
+            lat: hub.lat + offsetLat, 
+            lng: hub.lng + offsetLng 
+          });
+        }
+        
+        const base = motoristasBases.get(e.id);
 
-      try {
-        await atualizarLocalizacao(e.id, lat, lng);
-      } catch (err) {
-        console.error(`[Simulação] Erro ao atualizar GPS do entregador ${e.id}:`, err.message);
-      }
-    });
+        // Salto grande para efeito visual de "radar" dinâmico
+        const jumpLat = (Math.random() - 0.5) * 0.05;
+        const jumpLng = (Math.random() - 0.5) * 0.05;
+        
+        const lat = base.lat + jumpLat;
+        const lng = base.lng + jumpLng;
+
+        try {
+          await atualizarLocalizacao(e.id, lat, lng);
+        } catch (err) {
+          // ignora falhas pontuais de jitter
+        }
+      });
+    } catch (err) {
+       console.error(`[Simulação] Falha ao consultar lista:`, err.message);
+    }
   }, 3000);
 
   return true;

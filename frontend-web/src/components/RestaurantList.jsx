@@ -35,7 +35,7 @@ export default function RestaurantList({ onSelectRestaurant }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-12">
-        <div className="w-12 h-12 border-4 border-ifoodRed border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-brandRed border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-4 text-gray-500 font-medium">Buscando restaurantes...</p>
       </div>
     );
@@ -54,7 +54,7 @@ export default function RestaurantList({ onSelectRestaurant }) {
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 animate-fade-in">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Famosos no iFood</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Famosos no Delivery</h1>
         <p className="text-gray-500">Escolha o seu restaurante favorito para fazer o pedido.</p>
       </div>
 
@@ -63,7 +63,7 @@ export default function RestaurantList({ onSelectRestaurant }) {
           <div 
             key={r.id} 
             onClick={() => onSelectRestaurant(r)}
-            className="group glass-card cursor-pointer flex flex-col p-6 hover:border-ifoodRed/30"
+            className="group glass-card cursor-pointer flex flex-col p-6 hover:border-brandRed/30"
           >
             <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
               {getLogomarca(r.nome)}

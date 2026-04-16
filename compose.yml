@@ -1,11 +1,13 @@
+name: express-delivery
+
 services:
   db:
     image: postgres:15-alpine
     container_name: db_postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ifood_clone
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - '5432:5432'
     volumes:
@@ -36,7 +38,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5001
-      ConnectionStrings__DefaultConnection: Host=db;Database=ifood_clone;Username=postgres;Password=postgres
+      ConnectionStrings__DefaultConnection: Host=db;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASS}
       ConnectionStrings__RedisConnection: redis:6379
     depends_on:
       db:
@@ -57,7 +59,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5002
-      OSRM_URL: http://172.20.0.10:5000/
+      OSRM_URL: http://172.25.0.10:5000/
     depends_on:
       osrm-server:
         condition: service_started
@@ -78,7 +80,7 @@ services:
     restart: unless-stopped
     networks:
       app-network:
-        ipv4_address: 172.20.0.10
+        ipv4_address: 172.25.0.10
 
   api:
     build:
@@ -88,10 +90,10 @@ services:
     expose:
       - '4000'
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/ifood_clone?schema=public
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}?schema=public
       ENTREGADORES_SERVICE_URL: ms_entregadores:5001
       ROTEAMENTO_SERVICE_URL: ms_roteamento:5002
-      JWT_SECRET: express-delivery-secret-key-2026
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db:
         condition: service_healthy
@@ -131,6 +133,8 @@ services:
       KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
       KONG_PROXY_LISTEN: 0.0.0.0:8000
       KONG_LOG_LEVEL: notice
+      KONG_VAULT_ENV_PREFIX: SECRET_
+      SECRET_JWT_SECRET: ${JWT_SECRET}
     volumes:
       - ./kong:/usr/local/kong/declarative
     ports:
@@ -145,7 +149,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.25.0.0/16
 
 volumes:
   postgres_data:

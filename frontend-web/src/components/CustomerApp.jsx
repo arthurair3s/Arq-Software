@@ -57,7 +57,7 @@ export default function CustomerApp({ activePedidoId, setActivePedidoId }) {
       <div className="panel-header">
         <h2 className="panel-title">
           <Utensils className="text-accent" />
-          iFood Cliente
+          Delivery App
         </h2>
         {pedido && (
           <span

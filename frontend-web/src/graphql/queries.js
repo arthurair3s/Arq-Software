@@ -172,3 +172,22 @@ export const ATUALIZAR_ENDERECO = `
   }
 `;
 
+export const BUSCAR_CANDIDATOS = `
+  query BuscarCandidatos($restauranteId: ID!, $raioKm: Float!) {
+    entregadoresProximosAoRestaurante(restauranteId: $restauranteId, raioKm: $raioKm) {
+      id
+      nome
+      latitude
+      longitude
+    }
+  }
+`;
+
+export const ATRIBUIR_ENTREGADOR = `
+  mutation AtribuirEntregador($pedido_id: ID!) {
+    atribuirEntregador(pedido_id: $pedido_id) {
+      id
+      status
+    }
+  }
+`;

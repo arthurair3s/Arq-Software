@@ -57,12 +57,12 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-ifoodRed"></div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-brandRed"></div>
 
       <div className="w-full max-w-[440px] relative z-10">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h1 className="text-3xl font-bold text-ifoodRed tracking-tight">Crie sua conta</h1>
+            <h1 className="text-3xl font-bold text-brandRed tracking-tight">Crie sua conta</h1>
           </div>
           <p className="text-gray-500 font-medium">Junte-se à nossa comunidade de entrega</p>
         </div>
@@ -77,7 +77,7 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
                 onChange={e => setNome(e.target.value)}
                 required
                 placeholder="Como quer ser chamado?"
-                className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-ifoodRed/20 focus:border-ifoodRed transition-all"
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brandRed/20 focus:border-brandRed transition-all"
               />
             </div>
 
@@ -90,7 +90,7 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
                   onChange={e => setEmail(e.target.value)}
                   required
                   placeholder="Seu melhor e-mail"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-ifoodRed/20 focus:border-ifoodRed transition-all"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brandRed/20 focus:border-brandRed transition-all"
                 />
               </div>
               <div>
@@ -100,7 +100,7 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
                   value={telefone}
                   onChange={e => setTelefone(e.target.value)}
                   placeholder="(00) 00000-0000"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-ifoodRed/20 focus:border-ifoodRed transition-all"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brandRed/20 focus:border-brandRed transition-all"
                 />
               </div>
             </div>
@@ -113,12 +113,12 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
                 onChange={e => setSenha(e.target.value)}
                 required
                 placeholder="Mínimo 6 caracteres"
-                className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-ifoodRed/20 focus:border-ifoodRed transition-all"
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brandRed/20 focus:border-brandRed transition-all"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 text-ifoodRed text-xs p-3 rounded-xl border border-red-100">
+              <div className="bg-red-50 text-brandRed text-xs p-3 rounded-xl border border-red-100">
                 {error}
               </div>
             )}
@@ -134,9 +134,9 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
 
           <button
             onClick={onBackToLogin}
-            className="w-full mt-6 text-sm font-bold text-gray-400 hover:text-ifoodRed transition-colors"
+            className="w-full mt-6 text-sm font-bold text-gray-400 hover:text-brandRed transition-colors"
           >
-            Já tem uma conta? <span className="text-ifoodRed underline">Faça login</span>
+            Já tem uma conta? <span className="text-brandRed underline">Faça login</span>
           </button>
         </div>
       </div>

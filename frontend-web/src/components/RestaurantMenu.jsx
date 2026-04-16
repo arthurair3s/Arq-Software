@@ -84,7 +84,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
       <div className="flex-1">
         <button
           onClick={onBack}
-          className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-ifoodRed transition-colors"
+          className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-brandRed transition-colors"
         >
           ← Voltar aos restaurantes
         </button>
@@ -108,7 +108,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
                   {categoria.produtos && categoria.produtos.map(produto => (
                     <div
                       key={produto.id}
-                      className="glass-card p-4 flex flex-col group hover:border-ifoodRed/40 transition-colors"
+                      className="glass-card p-4 flex flex-col group hover:border-brandRed/40 transition-colors"
                     >
                       <div className="flex justify-between items-start mb-1">
                         <h4 className="font-bold text-gray-900">{produto.nome}</h4>
@@ -120,7 +120,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
 
                       <button
                         onClick={() => adicionarAoCarrinho(produto)}
-                        className="mt-auto py-2 px-4 rounded border border-gray-200 text-ifoodRed font-medium hover:bg-red-50 transition"
+                        className="mt-auto py-2 px-4 rounded border border-gray-200 text-brandRed font-medium hover:bg-red-50 transition"
                       >
                         + Adicionar
                       </button>
@@ -178,7 +178,7 @@ export default function RestaurantMenu({ restaurante, userLocation, onBack, onOr
             <button
               onClick={handleComprar}
               disabled={creatingOrder || loading || carrinho.length === 0 || !userLocation.lat}
-              className="btn btn-primary w-full py-4 text-lg font-bold shadow-ifoodRed/20 shadow-lg disabled:bg-gray-300 disabled:shadow-none disabled:text-gray-500"
+              className="btn btn-primary w-full py-4 text-lg font-bold shadow-brandRed/20 shadow-lg disabled:bg-gray-300 disabled:shadow-none disabled:text-gray-500"
             >
               {creatingOrder ? 'Carregando...' : (carrinho.length === 0 ? 'Carrinho Vazio' : (!userLocation.lat ? 'Defina seu Endereço' : 'Finalizar Pedido'))}
             </button>

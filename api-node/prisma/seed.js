@@ -9,7 +9,7 @@ const { PrismaClient } = prismaPkg
 
 const connectionString =
   process.env.DATABASE_URL ||
-  'postgresql://postgres:postgres@localhost:5432/ifood_clone?schema=public'
+  'postgresql://user:password@localhost:5432/delivery_db?schema=public'
 
 const pool = new Pool({ connectionString })
 const adapter = new PrismaPg(pool)
@@ -47,6 +47,27 @@ const RESTAURANTES = [
     endereco: 'R. Ten. Abel Cunha, 10B - Higienópolis, Rio de Janeiro',
     latitude: -22.877022,
     longitude: -43.256681
+  },
+  {
+    nome: "Seafood Copacabana",
+    descricao: 'Frutos do mar e vista para o mar',
+    endereco: 'Av. Atlântica, 1000 - Copacabana, Rio de Janeiro',
+    latitude: -22.9711,
+    longitude: -43.1822
+  },
+  {
+    nome: "Executivo do Centro",
+    descricao: 'Um PF rápido e de qualidade para quem não tem tempo',
+    endereco: 'Rua Uruguaiana, 50 - Centro, Rio de Janeiro',
+    latitude: -22.9035,
+    longitude: -43.1730
+  },
+  {
+    nome: "Steakhouse da Barra",
+    descricao: 'Cortes premium da Zona Oeste',
+    endereco: 'Av. das Américas, 5000 - Barra da Tijuca, Rio de Janeiro',
+    latitude: -23.0003,
+    longitude: -43.3658
   }
 ]
 
@@ -78,6 +99,8 @@ const USUARIOS = [
 // ENTREGADORES — Apenas dados cadastrais (Postgres)
 // A posição geográfica é atualizada via gRPC stream (Redis), não via seed
 // =============================================================================
+
+/*
 const ENTREGADORES = [
   {
     nome: 'Lucas Andrade',
@@ -95,6 +118,7 @@ const ENTREGADORES = [
     veiculo: 'Moto Yamaha Factor 125'
   }
 ]
+*/
 
 // =============================================================================
 // CATEGORIAS E PRODUTOS — Altere livremente
@@ -133,6 +157,33 @@ const CATEGORIAS_POR_RESTAURANTE = {
       produtos: [
         { nome: 'Classic Burger', descricao: 'Pão brioche, carne 180g', preco: 32.9 },
         { nome: 'Double Smash', descricao: 'Dois smash burgers', preco: 42.9 }
+      ]
+    }
+  ],
+  'Seafood Copacabana': [
+    {
+      nome: 'Grelhados',
+      produtos: [
+        { nome: 'Prato Feito Camarão', descricao: 'Acompanha salada e arroz', preco: 65.0 },
+        { nome: 'Ceviche Fresco', descricao: 'Com peixe branco do dia', preco: 45.0 }
+      ]
+    }
+  ],
+  'Executivo do Centro': [
+    {
+      nome: 'Marmitas Premium',
+      produtos: [
+        { nome: 'Bife a Cavalo', descricao: 'Bife, arroz, feijão, fritas e ovo', preco: 35.0 },
+        { nome: 'Frango Empanado', descricao: 'Acompanha talharim ao sugo', preco: 32.0 }
+      ]
+    }
+  ],
+  'Steakhouse da Barra': [
+    {
+      nome: 'Cortes Especiais',
+      produtos: [
+        { nome: 'Picanha Angus 500g', descricao: 'Acompanha batata rústica', preco: 150.0 },
+        { nome: 'Bife Ancho', descricao: 'Corte uruguaio mal passado', preco: 120.0 }
       ]
     }
   ]
@@ -227,11 +278,13 @@ async function main() {
   }
 
   // Entregadores
+  /*
   console.log('Criando entregadores...')
   const entregadores = await Promise.all(
     ENTREGADORES.map(e => prisma.entregadores.create({ data: e }))
   )
-
+  */
+ 
   // Pedidos (1 por usuário, em restaurantes diferentes)
   console.log('Criando pedidos...')
   const restaurantesArray = Object.values(restauranteMap)
@@ -298,6 +351,7 @@ async function main() {
   )
 
   // Entregas
+  /*
   console.log('Criando entregas...')
   await Promise.all(
     pedidos.map((p, i) =>
@@ -311,6 +365,7 @@ async function main() {
       })
     )
   )
+  */
 
   // Avaliações
   console.log('Criando avaliações...')
@@ -329,7 +384,7 @@ async function main() {
   console.log(`   ${usuarios.length} usuários`)
   console.log(`   ${restaurantesArray.length} restaurantes`)
   console.log(`   ${todosProdutos.length} produtos`)
-  console.log(`   ${entregadores.length} entregadores`)
+  // console.log(`   ${entregadores.length} entregadores`) // Removido pois os entregadores são gerados dinamicamente
   console.log(`   ${pedidos.length} pedidos`)
   console.log(
     `\n Lembre-se: as posições dos entregadores no Redis precisam ser`

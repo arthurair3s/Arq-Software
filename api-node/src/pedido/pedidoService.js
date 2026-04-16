@@ -32,16 +32,7 @@ export const criar = async dados => {
     status: 'EM_PREPARO_ENTREGA' 
   });
 
-  // dispara a logica de atribuicao inteligente
-  try {
-    await entregaService.atribuirMelhorEntregador(novoPedido.id);
-  } catch (error) {
-    import('../utils/logger.js').then(({ logger }) => {
-      logger.error(`Falha crítica na orquestração de entrega para o pedido ${novoPedido.id}: ${error.message}`, 'PedidoService');
-    });
-    console.error(`[Módulo Inteligente] Falhas ao orquestrar a entrega do pedido ${novoPedido.id}:`, error.message);
-  }
-
+  
   return novoPedido;
 }
 
