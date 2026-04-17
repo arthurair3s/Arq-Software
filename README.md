@@ -29,19 +29,18 @@ graph TD
 ```
 
 ### Nível 2: Contêineres (Containers)
-Abaixo, a topologia de rede do ecossistema Docker. **Nota:** Todo o tráfego externo é centralizado pelo API Gateway (Kong), garantindo segurança e padronização.
+Abaixo, a topologia de rede do ecossistema Docker. Todo o tráfego externo é centralizado pelo **API Gateway (Kong)**, que atua como o ponto de entrada único (Single Point of Entry) na porta 8000, roteando as requisições para o Frontend ou para a API conforme o path.
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
-        Web["Frontend Web (React + Leaflet)"]
-    end
+    Customer((Usuário Final))
 
-    subgraph "Gateway Layer"
+    subgraph "Core Infrastructure (Gateway)"
         Gateway["API Gateway (Kong)"]
     end
 
-    subgraph "Application Services"
+    subgraph "Application Layer"
+        Web["Frontend Web (React + Leaflet)"]
         API["Node.js API (Apollo/GraphQL)"]
     end
 
@@ -50,17 +49,20 @@ graph TB
         MS_ROT["ms_roteamento (.NET 10)"]
     end
 
-    subgraph "Persistence & Cache"
+    subgraph "Persistence & Intelligence"
         DB[("PostgreSQL")]
         Redis[("Redis - Tracking")]
+        OSRM_SRV["osrm_server (Engine)"]
     end
 
-    subgraph "Routing Infrastructure"
-        OSRM_SRV["osrm_server"]
-    end
-
-    Web -- "HTTPS" --> Gateway
-    Gateway -- "GraphQL / Web" --> API
+    %% Flows
+    Customer -- "Acessa porta 8000" --> Gateway
+    
+    Gateway -- "Roteia /" --> Web
+    Gateway -- "Roteia /graphql" --> API
+    
+    Web -- "Chamadas API via Gateway" --> Gateway
+    
     API -- "gRPC" --> MS_ENT
     API -- "gRPC" --> MS_ROT
     MS_ROT -- "HTTP" --> OSRM_SRV
@@ -81,7 +83,7 @@ A aplicação é totalmente conteinerizada com **Docker**. Siga os passos abaixo
 *   Pelo menos 8GB de RAM livre (para o servidor de roteamento OSRM).
 
 ### 2. Preparando os Dados de Mapa (OSRM)
-1. **Download**: Baixe o mapa da região Sudeste em [Geofabrik](https://download.geofabrik.de/south-america/brazil.html) (`sudeste-latest.osm.pbf`).
+1. **Download**: Baixe o mapa do Brasil ou apenas a região Sudeste em [Geofabrik](https://download.geofabrik.de/south-america/brazil.html) (`sudeste-latest.osm.pbf`).
 2. **Compilação**: Coloque o arquivo em `./osrm-data/` e execute:
    ```bash
    docker run -t -v "${PWD}/osrm-data:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/seu-arquivo.osm.pbf
