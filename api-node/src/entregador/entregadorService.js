@@ -1,6 +1,7 @@
-import * as restauranteService from '../restaurante/restauranteService.js'
+import * as restauranteRepository from '../restaurante/restauranteRepository.js'
 import entregadorClient from '../grpc/entregadorClient.js'
 import roteamentoClient from '../grpc/roteamentoClient.js'
+import { logger } from '../utils/logger.js'
 
 let simulacaoInterval = null;
 const motoristasBases = new Map();
@@ -46,7 +47,7 @@ export const listarProximos = (latitude, longitude, raioKm) => {
 }
 
 export const listarProximosAoRestaurante = async (restauranteId, raioKm) => {
-  const restaurante = await restauranteService.buscarPorId(restauranteId)
+  const restaurante = await restauranteRepository.buscarRestaurantePorId(restauranteId)
 
   if (!restaurante || !restaurante.latitude || !restaurante.longitude) {
     throw new Error(
@@ -142,7 +143,7 @@ export const atualizarLocalizacao = (id, latitude, longitude) => {
     });
     
     const entregador_id = parseInt(id);
-    console.log(`[GRPC-STREAM] Enviando -> ID: ${entregador_id}, Lat: ${latitude}, Lon: ${longitude}`);
+    logger.debug(`Enviando localidade -> ID: ${entregador_id}, Lat: ${latitude}, Lon: ${longitude}`, 'GRPC-STREAM');
     stream.write({ entregador_id, latitude, longitude });
     stream.end();
   });
@@ -165,7 +166,7 @@ export const povoarFrota = async () => {
           veiculo: 'Moto Honda CG 160'
         });
       } catch (e) {
-        console.error('erro ao criar entregador simulado:', e.message);
+        logger.error(`Erro ao criar entregador simulado: ${e.message}`, 'Simulação');
       }
     }
     entregadores = await listar();
@@ -222,7 +223,7 @@ export const povoarFrota = async () => {
         }
       });
     } catch (err) {
-       console.error(`[Simulação] Falha ao consultar lista:`, err.message);
+       logger.error(`Falha ao consultar lista na simulação: ${err.message}`, 'Simulação');
     }
   }, 3000);
 

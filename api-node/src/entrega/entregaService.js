@@ -3,6 +3,7 @@ import * as pedidoRepository from '../pedido/pedidoRepository.js'
 import * as restauranteRepository from '../restaurante/restauranteRepository.js'
 import * as entregadorService from '../entregador/entregadorService.js'
 import * as roteamentoService from '../roteamento/roteamentoService.js'
+import { logger } from '../utils/logger.js'
 
 const activeSimulations = new Map();
 const routeCache = new Map(); // cache de trajeto por entrega/status
@@ -47,7 +48,7 @@ export const atribuirMelhorEntregador = async pedidoId => {
   let candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 2.0)
   
   if (!candidatos || candidatos.length === 0) {
-    console.log(`[Módulo Inteligente] Ninguém a 2.0km. Tentando busca elástica de 3.5km...`);
+    logger.info(`Ninguém a 2.0km. Tentando busca elástica de 3.5km...`, 'EntregaService');
     candidatos = await entregadorService.listarProximosAoRestaurante(restaurante.id, 3.5);
   }
 
@@ -55,16 +56,14 @@ export const atribuirMelhorEntregador = async pedidoId => {
   let etaFinal = 0
 
   if (!candidatos || candidatos.length === 0) {
-    import('../utils/logger.js').then(({ logger }) => {
-      logger.warn(`Radar vazio para o restaurante ${restaurante.nome} (ID: ${restaurante.id}). Falha ao encontrar motoboys.`, 'EntregaService');
-    });
+    logger.warn(`Radar vazio para o restaurante ${restaurante.nome} (ID: ${restaurante.id}). Falha ao encontrar motoboys.`, 'EntregaService');
     throw new Error('Nenhum entregador disponível num raio de 3.5km.');
   }
 
   const disponiveis = candidatos.filter(e => e.status === 'DISPONIVEL' || e.status === '1' || e.status === 1)
 
   if (disponiveis.length === 0) {
-    console.warn('[Módulo Inteligente] Candidatos no radar estão ocupados. Falhando atribuição.');
+    logger.warn('Candidatos no radar estão ocupados. Falhando atribuição.', 'EntregaService');
     throw new Error('Todos os entregadores na região estão ocupados no momento.');
   }
 
@@ -90,7 +89,7 @@ export const atribuirMelhorEntregador = async pedidoId => {
   melhor = candidatosComEta[0].entregador
   etaFinal = candidatosComEta[0].eta
 
-  console.log(`[Módulo Inteligente] Sucesso: Entregador ${melhor.nome} vinculado ao pedido ${pedidoId}.`);
+  logger.info(`Sucesso: Entregador ${melhor.nome} vinculado ao pedido ${pedidoId}.`, 'EntregaService');
 
   const entrega = await criar({
     pedido_id: pedidoId,
@@ -101,9 +100,9 @@ export const atribuirMelhorEntregador = async pedidoId => {
   if (melhor.status === 'DISPONIVEL' || melhor.status === '1' || melhor.status === 1) {
     try {
       await entregadorService.atualizarStatus(melhor.id, 'EM_ENTREGA')
-      console.log(`[gRPC] Status de ${melhor.nome} alterado para EM_ENTREGA`)
+      logger.info(`Status de ${melhor.nome} alterado para EM_ENTREGA`, 'GRPC');
     } catch (err) {
-      console.error(`[gRPC Erro] Falha ao atualizar status do entregador: ${err.message}`)
+      logger.error(`Falha ao atualizar status do entregador: ${err.message}`, 'GRPC');
     }
   }
 
@@ -122,7 +121,7 @@ export const simularDeslocamento = async (entregaId) => {
   if (!pedido || !motorista) throw new Error('pedido ou motorista nao encontrado');
 
   const currentStatus = (entrega.status || "").trim().toUpperCase();
-  console.log(`[Simulação] Início para entrega ${entregaId}. Status: ${currentStatus}`);
+  logger.info(`Início para entrega ${entregaId}. Status: ${currentStatus}`, 'Simulação');
 
   await entregadorService.bloquearParaSimulacao(entrega.entregador_id);
   
@@ -136,22 +135,22 @@ export const simularDeslocamento = async (entregaId) => {
     if (restaurante) {
       destLat = Number(restaurante.latitude);
       destLon = Number(restaurante.longitude);
-      console.log(`[Simulação] Destino: Restaurante (${restaurante.nome})`);
+      logger.info(`Destino: Restaurante (${restaurante.nome})`, 'Simulação');
     } else {
-      console.warn(`[Simulação] Restaurante ${pedido.restaurante_id} não encontrado.`);
+      logger.warn(`Restaurante ${pedido.restaurante_id} não encontrado.`, 'Simulação');
     }
   } else {
-    console.log(`[Simulação] Destino: Cliente`);
+    logger.info(`Destino: Cliente`, 'Simulação');
   }
 
   const rota = await obterRotaEstavel(entregaId);
   if (!rota || !rota.caminho || rota.caminho.length === 0) {
-    console.error(`[Simulação] Falha crítica: Rota não encontrada para a entrega ${entregaId}`);
+    logger.error(`Falha crítica: Rota não encontrada para a entrega ${entregaId}`, 'Simulação');
     return false;
   }
 
   const pontos = [...rota.caminho];
-  console.log(`[Simulação] Rota carregada: ${pontos.length} pontos disponíveis.`);
+  logger.info(`Rota carregada: ${pontos.length} pontos disponíveis.`, 'Simulação');
 
   const interval = setInterval(async () => {
     if (pontos.length === 0) {
@@ -159,10 +158,10 @@ export const simularDeslocamento = async (entregaId) => {
       activeSimulations.delete(entregaId);
       
       if (currentStatus === 'ATRIBUIDA') {
-        console.log(`[Simulação] Sucesso: Chegou ao Restaurante. Atualizando para EM_TRANSITO.`);
+        logger.info(`Sucesso: Chegou ao Restaurante. Atualizando para EM_TRANSITO.`, 'Simulação');
         await editarPorId(entregaId, { status: 'EM_TRANSITO' });
       } else {
-        console.log(`[Simulação] Sucesso: Chegou ao Cliente. Finalizando entrega.`);
+        logger.info(`Sucesso: Chegou ao Cliente. Finalizando entrega.`, 'Simulação');
         await editarPorId(entregaId, { status: 'ENTREGUE' });
         await entregadorService.atualizarStatus(motorista.id, 'DISPONIVEL');
         entregadorService.liberarDeSimulacao(motorista.id);
@@ -173,11 +172,11 @@ export const simularDeslocamento = async (entregaId) => {
     const ponto = pontos.shift();
     try {
       if (pontos.length % 5 === 0) {
-        console.log(`[Simulação] Motoboy ${motorista.nome} em: ${ponto.latitude.toFixed(5)}, ${ponto.longitude.toFixed(5)} (${pontos.length} restantes)`);
+        logger.debug(`Motoboy ${motorista.nome} em: ${ponto.latitude.toFixed(5)}, ${ponto.longitude.toFixed(5)} (${pontos.length} restantes)`, 'Simulação');
       }
       await entregadorService.atualizarLocalizacao(motorista.id, ponto.latitude, ponto.longitude);
     } catch (e) {
-      console.error('erro no deslocamento simulado:', e.message);
+      logger.error(`Erro no deslocamento simulado: ${e.message}`, 'Simulação');
     }
   }, 1000);
 
@@ -230,7 +229,7 @@ export const obterRotaEstavel = async (entregaId) => {
     }
     return rota;
   } catch (err) {
-    console.error(`[Cache Rota] erro crítico ao calcular:`, err.message);
+    logger.error(`Erro crítico ao calcular cache rota: ${err.message}`, 'Cache Rota');
     return null;
   }
 };

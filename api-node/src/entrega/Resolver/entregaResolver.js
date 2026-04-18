@@ -1,9 +1,10 @@
 import { Query } from './entregaQuery.js'
 import { Mutation } from './entregaMutation.js'
-import * as pedidoService from '../../pedido/pedidoService.js'
+import * as pedidoRepository from '../../pedido/pedidoRepository.js'
 import * as entregadorService from '../../entregador/entregadorService.js'
 import * as roteamentoService from '../../roteamento/roteamentoService.js'
-import * as restauranteService from '../../restaurante/restauranteService.js'
+import * as restauranteRepository from '../../restaurante/restauranteRepository.js'
+import * as entregaService from '../entregaService.js'
 
 export const entregaResolver = {
   Query,
@@ -11,7 +12,7 @@ export const entregaResolver = {
   Entrega: {
     pedido: async parent => {
       if (!parent.pedido_id) return null
-      return pedidoService.buscarPorId(parent.pedido_id)
+      return pedidoRepository.buscarPedidoPorId(parent.pedido_id)
     },
     entregador: async parent => {
       if (!parent.entregador_id) return null
@@ -24,7 +25,7 @@ export const entregaResolver = {
       if (!parent.entregador_id || !parent.pedido_id) return null;
       
       const entregador = await entregadorService.buscarPorId(parent.entregador_id);
-      const pedido = await pedidoService.buscarPorId(parent.pedido_id);
+      const pedido = await pedidoRepository.buscarPedidoPorId(parent.pedido_id);
       
       if (!entregador || !pedido) return null;
       
@@ -44,7 +45,7 @@ export const entregaResolver = {
         // tenta buscar o id do restaurante no pedido
         const restId = pedido.restaurante_id || pedido.restauranteId; 
         if (restId) {
-          const restaurante = await restauranteService.buscarPorId(restId);
+          const restaurante = await restauranteRepository.buscarRestaurantePorId(restId);
           if (restaurante && restaurante.latitude && restaurante.longitude) {
             destLat = restaurante.latitude;
             destLon = restaurante.longitude;
@@ -63,8 +64,7 @@ export const entregaResolver = {
 
       try {
         // usa rota estavel do cache para evitar oscilacao de pontos durante o trajeto
-        const { obterRotaEstavel } = await import('../entregaService.js');
-        return await obterRotaEstavel(parent.id);
+        return await entregaService.obterRotaEstavel(parent.id);
       } catch (error) {
         return null;
       }
@@ -73,7 +73,7 @@ export const entregaResolver = {
       if (!parent.entregador_id || !parent.pedido_id) return null;
       
       const entregador = await entregadorService.buscarPorId(parent.entregador_id);
-      const pedido = await pedidoService.buscarPorId(parent.pedido_id);
+      const pedido = await pedidoRepository.buscarPedidoPorId(parent.pedido_id);
       
       if (!entregador || !pedido) return null;
 
@@ -85,7 +85,7 @@ export const entregaResolver = {
       if (currentStatus === 'ATRIBUIDA') {
         const restId = pedido.restaurante_id || pedido.restauranteId;
         if (restId) {
-          const restaurante = await restauranteService.buscarPorId(restId);
+          const restaurante = await restauranteRepository.buscarRestaurantePorId(restId);
           if (restaurante && restaurante.latitude && restaurante.longitude) {
             destLat = restaurante.latitude;
             destLon = restaurante.longitude;
@@ -102,19 +102,10 @@ export const entregaResolver = {
       }
     },
     rota_coleta: async (parent) => {
-      const { obterRotaColeta } = await import('../entregaService.js');
-      return obterRotaColeta(parent.id);
+      return entregaService.obterRotaColeta(parent.id);
     },
     rota_entrega: async (parent) => {
-      const { obterRotaEntrega } = await import('../entregaService.js');
-      return obterRotaEntrega(parent.id);
+      return entregaService.obterRotaEntrega(parent.id);
     }
   },
-  Pedido: {
-    entregas: async (parent) => {
-      // parent aqui é o Pedido
-      const { buscarPorPedidoId } = await import('../entregaService.js');
-      return buscarPorPedidoId(parent.id);
-    }
-  }
 }

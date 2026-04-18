@@ -1,6 +1,5 @@
 import { GraphQLError } from 'graphql'
 import * as pedidoRepository from './pedidoRepository.js'
-import * as entregaService from '../entrega/entregaService.js'
 import * as usuarioRepository from '../usuario/usuarioRepository.js'
 
 export const listar = async () => {
